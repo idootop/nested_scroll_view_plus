@@ -12,7 +12,7 @@ Try it online: [https://flutter-nested-scroll-view-plus.vercel.app](https://flut
 
 Example usage:
 
-1. Wrap your SliverAppBar with `OverlapAbsorberPlus`
+1. Wrap your `SliverAppBar` with `OverlapAbsorberPlus`
 2. Use `OverlapInjectorPlus` on top of your inner `CustomScrollView`
 
 That's it!
@@ -40,9 +40,7 @@ NestedScrollViewPlus(
 );
 ```
 
-For additional examples, please visit the [https://github.com/idootop/scroll_master](https://github.com/idootop/scroll_master) repository. 
-
-It includes features such as pull-to-refresh for `NestedScrollView`, combined scrolling for scrollview and tabview, and more. 
+For additional examples, please visit the [scroll_master](https://github.com/idootop/scroll_master) repository. It includes features such as pull-to-refresh for `NestedScrollView`, combined scrolling for scrollview and tabview, and more. 
 
 ## 📒 Others
 
@@ -88,9 +86,7 @@ class _ExampleState extends State<Example> {
 
 ### ⭕️ For Older Flutter Versions
 
-Due to changes in Flutter versions, the new version of `NestedScrollView` has undergone several breaking changes. 
-
-If you are using an older version of Flutter, please follow these steps to install the appropriate branch from the old [Git repository](https://github.com/idootop/custom_nested_scroll_view).
+Due to changes in Flutter versions, the new version of `NestedScrollView` has undergone several breaking changes. If you are using an older version of Flutter, please follow these steps to install the appropriate branch from the old [Git repository](https://github.com/idootop/custom_nested_scroll_view).
 
 ```shell
 dependencies:
