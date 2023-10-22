@@ -93,10 +93,10 @@ class _ExampleState extends State<Example> {
 
 class MySliverAppBar extends StatelessWidget {
   ///Header collapsed height
-  final minHeight = 120.0;
+  final minHeight = 100.0;
 
   ///Header expanded height
-  final maxHeight = 400.0;
+  final maxHeight = 360.0;
 
   final tabBar = const TabBar(
     labelPadding: EdgeInsets.all(16),
