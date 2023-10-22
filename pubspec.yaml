@@ -1,0 +1,16 @@
+name: nested_scroll_view_plus
+description: An enhanced NestedScrollView with support for overscrolling for both the inner and outer scrollviews.
+homepage: https://github.com/idootop/nested_scroll_view_plus
+
+version: 1.0.0
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.7.0-13.0.pre"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^3.0.0
