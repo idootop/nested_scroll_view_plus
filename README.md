@@ -95,7 +95,7 @@ class _ExampleState extends State<Example> {
 
 ### 🚩 Preserve Scroll Positions of Inner CustomScrollViews
 
-To preserve the scroll positions of inner `CustomScrollViews`, you can add a `PageStorageKey` to the `CustomScrollView` widget. 
+To preserve the scroll positions of inner `CustomScrollViews`, you can add a `PageStorageKey` to the `CustomScrollView` widget.
 
 Here's an example:
 
@@ -112,7 +112,7 @@ By assigning a unique key to the `CustomScrollView`, Flutter's `PageStorage` mec
 
 ### ⭕️ For Older Flutter Versions
 
-Due to changes in Flutter versions, the new version of `NestedScrollView` has undergone several breaking changes. If you are using an older version of Flutter, please follow these steps to install the appropriate branch from the old [Git repository](https://github.com/idootop/custom_nested_scroll_view).
+If you are using an older version of Flutter, please follow these steps to install the appropriate branch from the [old git repository](<(https://github.com/idootop/custom_nested_scroll_view)>).
 
 ```shell
 dependencies:
@@ -132,6 +132,8 @@ The different branches support the following Flutter versions:
 | flutter-3.4-pre | >=3.4.0-17.0.pre <3.4.0-27.0.pre |
 | flutter-3.0     | >=2.12.0-4.0.pre <3.4.0-17.0.pre |
 | flutter-2.x     | <2.12.0-4.0.pre                  |
+
+For more details, please visit the [old documentation](https://github.com/idootop/custom_nested_scroll_view) for `CustomNestedScrollView`.
 
 ## ❤️ Acknowledgements
 
