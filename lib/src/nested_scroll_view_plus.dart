@@ -10,13 +10,14 @@ enum OverscrollType {
 
 class NestedScrollViewPlus extends StatelessWidget {
   /// An enhanced NestedScrollView with support for overscrolling for both the inner and outer scrollviews.
-  /// 
+  ///
   /// Example usage:
   /// 1. Wrap your SliverAppBar with [OverlapAbsorberPlus]
   /// 2. Use [OverlapInjectorPlus] on top of your inner [CustomScrollView]
-  /// 
+  /// 3. Change the physics of [CustomScrollView] to [AlwaysScrollableScrollPhysics]
+  ///
   /// That's it!
-  /// 
+  ///
   /// ```dart
   /// NestedScrollViewPlus(
   ///   headerSliverBuilder: (context, innerScrolled) => <Widget>[
@@ -28,8 +29,12 @@ class NestedScrollViewPlus extends StatelessWidget {
   ///   body: TabBarView(
   ///     children: [
   ///       CustomScrollView(
+  ///         // 2. [IMPORTANT] Change the physics of CustomScrollView to AlwaysScrollableScrollPhysics
+  ///         physics: const BouncingScrollPhysics(
+  ///           parent: AlwaysScrollableScrollPhysics(),
+  ///         ),
   ///         slivers: <Widget>[
-  ///           // 2. Use OverlapInjectorPlus on top of your inner CustomScrollView
+  ///           // 3. Use OverlapInjectorPlus on top of your inner CustomScrollView
   ///           OverlapInjectorPlus(),
   ///           // Other children of CustomScrollView
   ///           // ...,

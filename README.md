@@ -14,6 +14,7 @@ Example usage:
 
 1. Wrap your `SliverAppBar` with `OverlapAbsorberPlus`
 2. Use `OverlapInjectorPlus` on top of your inner `CustomScrollView`
+3. Change the physics of `CustomScrollView` to `AlwaysScrollableScrollPhysics`
 
 That's it!
 
@@ -28,8 +29,12 @@ NestedScrollViewPlus(
   body: TabBarView(
     children: [
       CustomScrollView(
+        // 2. [IMPORTANT] Change the physics of CustomScrollView to AlwaysScrollableScrollPhysics
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         slivers: <Widget>[
-          // 2. Use OverlapInjectorPlus on top of your inner CustomScrollView
+          // 3. Use OverlapInjectorPlus on top of your inner CustomScrollView
           OverlapInjectorPlus(),
           // Other children of CustomScrollView
           // ...,
@@ -40,7 +45,7 @@ NestedScrollViewPlus(
 );
 ```
 
-For additional examples, please visit the [scroll_master](https://github.com/idootop/scroll_master) repository. It includes features such as pull-to-refresh for `NestedScrollView`, combined scrolling for scrollview and tabview, and more. 
+For additional examples, please visit the [scroll_master](https://github.com/idootop/scroll_master) repository. It includes features such as pull-to-refresh for `NestedScrollView`, combined scrolling for scrollview and tabview, and more.
 
 ## 📒 Others
 
@@ -74,15 +79,36 @@ class _ExampleState extends State<Example> {
 
   void _handleInnerScroll() {
     final innerController = myKey.currentState!.innerController;
-    print('Scrolling inner nested scrollview: ${innerController.offset}');
+    if (innerController.positions.length == 1) {
+      print('Scrolling inner nested scrollview: ${innerController.offset}');
+    }
   }
 
   void _handleOuterScroll() {
     final outerController = myKey.currentState!.outerController;
-    print('Scrolling outer nested scrollview: ${outerController.offset}');
+    if (outerController.positions.length == 1) {
+      print('Scrolling outer nested scrollview: ${outerController.offset}');
+    }
   }
 }
 ```
+
+### 🚩 Preserve Scroll Positions of Inner CustomScrollViews
+
+To preserve the scroll positions of inner `CustomScrollViews`, you can add a `PageStorageKey` to the `CustomScrollView` widget. 
+
+Here's an example:
+
+```dart
+CustomScrollView(
+  key: PageStorageKey<String>('unique-key'),
+  slivers: <Widget>[
+    // ...,
+  ],
+),
+```
+
+By assigning a unique key to the `CustomScrollView`, Flutter's `PageStorage` mechanism will store and restore the scroll position of the inner `CustomScrollViews`, allowing you to maintain the scroll positions even when the widget tree is rebuilt.
 
 ### ⭕️ For Older Flutter Versions
 
@@ -94,7 +120,7 @@ dependencies:
     git:
       url: https://github.com/idootop/custom_nested_scroll_view.git
       # Choose the branch based on your local Flutter version
-      ref: flutter-3.7 
+      ref: flutter-3.7
 ```
 
 The different branches support the following Flutter versions:
