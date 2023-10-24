@@ -10,6 +10,13 @@ Try it online: [https://flutter-nested-scroll-view-plus.vercel.app](https://flut
 
 ## 💡 Usage
 
+Installation:
+
+```shell
+flutter pub add nested_scroll_view_plus
+```
+
+
 Example usage:
 
 1. Wrap your `SliverAppBar` with `OverlapAbsorberPlus`
@@ -19,6 +26,8 @@ Example usage:
 That's it!
 
 ```dart
+import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
+
 NestedScrollViewPlus(
   headerSliverBuilder: (context, innerScrolled) => <Widget>[
     // 1. Wrap your SliverAppBar with OverlapAbsorberPlus
@@ -136,7 +145,7 @@ For more details, please visit the [old documentation](https://github.com/idooto
 ## ❤️ Acknowledgements
 
 - [extended_nested_scroll_view](https://github.com/fluttercandies/extended_nested_scroll_view)
-- [大道至简：Flutter 嵌套滑动冲突解决之路](http://vimerzhao.top/posts/flutter-nested-scroll-conflict/)
+- [大道至简：Flutter 嵌套滑动冲突解决之路](https://vimerzhao.top/articles/flutter-nested-scroll-conflict/)
 - [深入进阶-如何解决 Flutter 上的滑动冲突？ ](https://juejin.cn/post/6900751363173515278)
 - [用 Flutter 实现 58App 的首页](https://blog.csdn.net/weixin_39891694/article/details/111217123)
 - [不一样角度带你了解 Flutter 中的滑动列表实现](https://blog.csdn.net/ZuoYueLiang/article/details/116245138)
