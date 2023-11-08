@@ -377,14 +377,14 @@ class RenderSliverOverlapAbsorberOuter
     final maxExtent = childLayoutGeometry.scrollExtent;
     final minExtent = childLayoutGeometry.maxScrollObstructionExtent;
     final currentExtent = childLayoutGeometry.paintExtent;
-    final topOverscroll = currentExtent > maxExtent;
+    // final topOverscroll = currentExtent > maxExtent;
     final topOverscrollExtend =
         (currentExtent - maxExtent).clamp(0, double.infinity);
-    final absorbsExtend = topOverscroll ? 0.0 : minExtent;
-    final scrollExtend = topOverscroll
-        ? currentExtent
-        : maxExtent - absorbsExtend - topOverscrollExtend;
-    final layoutExtent = currentExtent - absorbsExtend - topOverscrollExtend;
+    final atBottom =
+        (currentExtent - minExtent).abs() < precisionErrorTolerance;
+    final scrollExtend = atBottom ? maxExtent - minExtent : maxExtent;
+    final layoutExtent =
+        atBottom ? minExtent : currentExtent - topOverscrollExtend;
     geometry = SliverGeometry(
       scrollExtent: scrollExtend,
       layoutExtent: layoutExtent,
@@ -398,10 +398,7 @@ class RenderSliverOverlapAbsorberOuter
       hasVisualOverflow: childLayoutGeometry.hasVisualOverflow,
       scrollOffsetCorrection: childLayoutGeometry.scrollOffsetCorrection,
     );
-    handle._setExtents(
-      absorbsExtend,
-      absorbsExtend,
-    );
+    handle._setExtents(0, 0);
   }
 }
 
