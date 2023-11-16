@@ -29,28 +29,27 @@ class Example extends StatefulWidget {
 }
 
 class _ExampleState extends State<Example> {
-  Widget _tabView([bool reverse = false]) => CustomScrollView(
-        key: PageStorageKey<String>('$reverse'),
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: <Widget>[
-          const OverlapInjectorPlus(),
-          SliverFixedExtentList(
-            delegate: SliverChildBuilderDelegate(
-              (_, index) => Container(
-                key: Key('$reverse-$index'),
-                color: index.isEven ? Colors.white : Colors.grey[100],
-                child: Center(
-                  child: Text('ListTile ${reverse ? 30 - index : index + 1}'),
-                ),
-              ),
-              childCount: 30,
-            ),
-            itemExtent: 60,
-          ),
-        ],
-      );
+  final GlobalKey<NestedScrollViewStatePlus> myKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      // use GlobalKey<NestedScrollViewStatePlus> to access inner or outer scroll controller
+      myKey.currentState?.outerController.addListener(() {
+        final innerController = myKey.currentState!.outerController;
+        if (innerController.positions.length == 1) {
+          print('Scrolling inner nested scrollview: ${innerController.offset}');
+        }
+      });
+      myKey.currentState?.outerController.addListener(() {
+        final outerController = myKey.currentState!.outerController;
+        if (outerController.positions.length == 1) {
+          print('Scrolling outer nested scrollview: ${outerController.offset}');
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,27 +76,28 @@ class _ExampleState extends State<Example> {
     );
   }
 
-  final GlobalKey<NestedScrollViewStatePlus> myKey = GlobalKey();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      // use GlobalKey<NestedScrollViewStatePlus> to access inner or outer scroll controller
-      myKey.currentState?.innerController.addListener(() {
-        final innerController = myKey.currentState!.innerController;
-        if (innerController.positions.length == 1) {
-          print('Scrolling inner nested scrollview: ${innerController.offset}');
-        }
-      });
-      myKey.currentState?.outerController.addListener(() {
-        final outerController = myKey.currentState!.outerController;
-        if (outerController.positions.length == 1) {
-          print('Scrolling outer nested scrollview: ${outerController.offset}');
-        }
-      });
-    });
-  }
+  Widget _tabView([bool reverse = false]) => CustomScrollView(
+        key: PageStorageKey<String>('$reverse'),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        slivers: <Widget>[
+          const OverlapInjectorPlus(),
+          SliverFixedExtentList(
+            delegate: SliverChildBuilderDelegate(
+              (_, index) => Container(
+                key: Key('$reverse-$index'),
+                color: index.isEven ? Colors.white : Colors.grey[100],
+                child: Center(
+                  child: Text('ListTile ${reverse ? 30 - index : index + 1}'),
+                ),
+              ),
+              childCount: 30,
+            ),
+            itemExtent: 60,
+          ),
+        ],
+      );
 }
 
 class MySliverAppBar extends StatelessWidget {

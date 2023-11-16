@@ -141,6 +141,28 @@ class SliverOverlapAbsorberPlus extends OriginalSliverOverlapAbsorber {
   }
 }
 
+class OverlapAbsorberPlus extends StatelessWidget {
+  const OverlapAbsorberPlus({
+    super.key,
+    this.sliver,
+    this.overscrollType = OverscrollType.outer,
+  });
+
+  final Widget? sliver;
+  final OverscrollType overscrollType;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverOverlapAbsorberPlus(
+      overscrollType: overscrollType,
+      handle: NestedScrollViewPlus.sliverOverlapAbsorberHandleFor(
+        context,
+      ),
+      sliver: sliver,
+    );
+  }
+}
+
 class SliverOverlapInjectorPlus extends OriginalSliverOverlapInjector {
   const SliverOverlapInjectorPlus({
     super.key,
@@ -175,28 +197,6 @@ class OverlapInjectorPlus extends StatelessWidget {
         overscrollType: overscrollType,
         handle: NestedScrollViewPlus.sliverOverlapAbsorberHandleFor(context),
       ),
-    );
-  }
-}
-
-class OverlapAbsorberPlus extends StatelessWidget {
-  const OverlapAbsorberPlus({
-    super.key,
-    this.sliver,
-    this.overscrollType = OverscrollType.outer,
-  });
-
-  final Widget? sliver;
-  final OverscrollType overscrollType;
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverOverlapAbsorberPlus(
-      overscrollType: overscrollType,
-      handle: NestedScrollViewPlus.sliverOverlapAbsorberHandleFor(
-        context,
-      ),
-      sliver: sliver,
     );
   }
 }

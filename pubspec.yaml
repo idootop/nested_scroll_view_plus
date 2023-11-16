@@ -2,7 +2,7 @@ name: nested_scroll_view_plus
 description: An enhanced NestedScrollView with support for overscrolling for both the inner and outer scrollviews.
 homepage: https://github.com/idootop/nested_scroll_view_plus
 
-version: 1.0.1
+version: 1.0.2
 
 environment:
   sdk: ">=3.0.0 <4.0.0"

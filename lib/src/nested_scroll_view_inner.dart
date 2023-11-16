@@ -307,6 +307,41 @@ class RenderSliverOverlapAbsorberInner
     required super.handle,
     super.sliver,
   });
+
+  @override
+  void performLayout() {
+    assert(
+      handle._writers == 1,
+      'A OriginalOverlapAbsorberHandle cannot be passed to multiple OriginalRenderSliverOverlapAbsorber objects at the same time.',
+    );
+    if (child == null) {
+      geometry = SliverGeometry.zero;
+      return;
+    }
+    child!.layout(constraints, parentUsesSize: true);
+    final SliverGeometry childLayoutGeometry = child!.geometry!;
+    final maxExtent = childLayoutGeometry.scrollExtent;
+    final minExtent = childLayoutGeometry.maxScrollObstructionExtent;
+    final currentExtent = childLayoutGeometry.paintExtent;
+    final isOuterScrollShrinking = currentExtent < maxExtent;
+    final scrollExtend =
+        isOuterScrollShrinking ? maxExtent - minExtent : maxExtent;
+    final layoutExtent = isOuterScrollShrinking ? currentExtent : currentExtent;
+    geometry = SliverGeometry(
+      scrollExtent: scrollExtend,
+      layoutExtent: layoutExtent,
+      paintExtent: childLayoutGeometry.paintExtent,
+      paintOrigin: childLayoutGeometry.paintOrigin,
+      maxPaintExtent: childLayoutGeometry.maxPaintExtent,
+      maxScrollObstructionExtent:
+          childLayoutGeometry.maxScrollObstructionExtent,
+      hitTestExtent: childLayoutGeometry.hitTestExtent,
+      visible: childLayoutGeometry.visible,
+      hasVisualOverflow: childLayoutGeometry.hasVisualOverflow,
+      scrollOffsetCorrection: childLayoutGeometry.scrollOffsetCorrection,
+    );
+    handle._setExtents(0, 0);
+  }
 }
 
 class SliverOverlapInjectorInner extends OriginalSliverOverlapInjector {
