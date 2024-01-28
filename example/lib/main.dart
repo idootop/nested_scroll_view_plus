@@ -36,16 +36,18 @@ class _ExampleState extends State<Example> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       // use GlobalKey<NestedScrollViewStatePlus> to access inner or outer scroll controller
-      myKey.currentState?.outerController.addListener(() {
-        final innerController = myKey.currentState!.outerController;
+      myKey.currentState?.innerController.addListener(() {
+        final innerController = myKey.currentState!.innerController;
         if (innerController.positions.length == 1) {
-          print('Scrolling inner nested scrollview: ${innerController.offset}');
+          print(
+              'Scrolling inner nested scrollview: ${innerController.offset} max: ${innerController.position.maxScrollExtent}');
         }
       });
       myKey.currentState?.outerController.addListener(() {
         final outerController = myKey.currentState!.outerController;
         if (outerController.positions.length == 1) {
-          print('Scrolling outer nested scrollview: ${outerController.offset}');
+          print(
+              'Scrolling outer nested scrollview: ${outerController.offset} max: ${outerController.position.maxScrollExtent}  min: ${outerController.position.minScrollExtent}');
         }
       });
     });
@@ -57,13 +59,20 @@ class _ExampleState extends State<Example> {
       body: DefaultTabController(
         length: 2,
         child: NestedScrollViewPlus(
-          // use key to access NestedScrollViewStatePlus
           key: myKey,
+          // physics: NeverScrollableScrollPhysics(),
+          overscrollType: OverscrollType.outer,
           headerSliverBuilder: (context, innerScrolled) => <Widget>[
-            // use OverlapAbsorberPlus to wrap your SliverAppBar
             const OverlapAbsorberPlus(
+              overscrollType: OverscrollType.outer,
               sliver: MySliverAppBar(),
             ),
+            SliverToBoxAdapter(
+              child: Container(
+                height: 0,
+                color: Colors.blue,
+              ),
+            )
           ],
           body: TabBarView(
             children: [
@@ -78,21 +87,24 @@ class _ExampleState extends State<Example> {
 
   Widget _tabView([bool reverse = false]) => CustomScrollView(
         key: PageStorageKey<String>('$reverse'),
+        // physics: NeverScrollableScrollPhysics(),
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: <Widget>[
-          const OverlapInjectorPlus(),
+          const OverlapInjectorPlus(
+            overscrollType: OverscrollType.outer,
+          ),
           SliverFixedExtentList(
             delegate: SliverChildBuilderDelegate(
               (_, index) => Container(
                 key: Key('$reverse-$index'),
                 color: index.isEven ? Colors.white : Colors.grey[100],
                 child: Center(
-                  child: Text('ListTile ${reverse ? 30 - index : index + 1}'),
+                  child: Text('ListTile ${reverse ? 20 - index : index + 1}'),
                 ),
               ),
-              childCount: 30,
+              childCount: 20,
             ),
             itemExtent: 60,
           ),

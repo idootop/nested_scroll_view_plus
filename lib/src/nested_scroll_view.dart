@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Last updated: [Flutter 3.11.0-5.0.pre](https://github.com/flutter/flutter/commit/dd7d4b952112f988cb85dcc905eb7858e83f62a2)
+// Last updated: [Flutter 3.19.0-5.0.pre](https://github.com/flutter/flutter/commit/e5f62cc5a029469f46464a6930075731ce42a94d)
 
 import 'dart:math' as math;
 
@@ -191,6 +191,13 @@ class OriginalNestedScrollView extends StatefulWidget {
   final ScrollController? controller;
 
   /// {@macro flutter.widgets.scroll_view.scrollDirection}
+  ///
+  /// This property only applies to the [Axis] of the outer scroll view,
+  /// composed of the slivers returned from [headerSliverBuilder]. Since the
+  /// inner scroll view is not directly configured by the [NestedScrollView],
+  /// for the axes to match, configure the scroll view of the [body] the same
+  /// way if they are expected to scroll in the same orientation. This allows
+  /// for flexible configurations of the NestedScrollView.
   final Axis scrollDirection;
 
   /// Whether the scroll view scrolls in the reading direction.
@@ -203,6 +210,13 @@ class OriginalNestedScrollView extends StatefulWidget {
   /// Similarly, if [scrollDirection] is [Axis.vertical], then the scroll view
   /// scrolls from top to bottom when [reverse] is false and from bottom to top
   /// when [reverse] is true.
+  ///
+  /// This property only applies to the outer scroll view, composed of the
+  /// slivers returned from [headerSliverBuilder]. Since the inner scroll view
+  /// is not directly configured by the [NestedScrollView]. For both to scroll
+  /// in reverse, configure the scroll view of the [body] the same way if they
+  /// are expected to match. This allows for flexible configurations of the
+  /// NestedScrollView.
   ///
   /// Defaults to false.
   final bool reverse;
@@ -226,6 +240,22 @@ class OriginalNestedScrollView extends StatefulWidget {
   /// [ScrollMetrics.maxScrollExtent] properties passed to that method. If that
   /// invariant is not maintained, the nested scroll view may respond to user
   /// scrolling erratically.
+  ///
+  /// This property only applies to the outer scroll view, composed of the
+  /// slivers returned from [headerSliverBuilder]. Since the inner scroll view
+  /// is not directly configured by the [NestedScrollView]. For both to scroll
+  /// with the same [ScrollPhysics], configure the scroll view of the [body]
+  /// the same way if they are expected to match, or use a [ScrollBehavior] as
+  /// an ancestor so both the inner and outer scroll views inherit the same
+  /// [ScrollPhysics]. This allows for flexible configurations of the
+  /// NestedScrollView.
+  ///
+  /// The [ScrollPhysics] also determine whether or not the [NestedScrollView]
+  /// can accept input from the user to change the scroll offset. For example,
+  /// [NeverScrollableScrollPhysics] typically will not allow the user to drag a
+  /// scroll view, but in this case, if one of the two scroll views can be
+  /// dragged, then dragging will be allowed. Configuring both scroll views with
+  /// [NeverScrollableScrollPhysics] will disallow dragging in this case.
   final ScrollPhysics? physics;
 
   /// A builder for any widgets that are to precede the inner scroll views (as
@@ -253,7 +283,7 @@ class OriginalNestedScrollView extends StatefulWidget {
   /// outer scrollable over the inner when scrolling back.
   ///
   /// This is useful for an outer scrollable containing a [SliverAppBar] that
-  /// is expected to float. This cannot be null.
+  /// is expected to float.
   final bool floatHeaderSlivers;
 
   /// {@macro flutter.material.Material.clipBehavior}
@@ -410,6 +440,7 @@ class NestedScrollViewStatePlus extends State<OriginalNestedScrollView> {
   void dispose() {
     _coordinator!.dispose();
     _coordinator = null;
+    _absorberHandle.dispose();
     super.dispose();
   }
 
@@ -574,6 +605,15 @@ class _OriginalNestedScrollCoordinator
     this._onHasScrolledBodyChanged,
     this._floatHeaderSlivers,
   ) {
+    // // TODO(polina-c): stop duplicating code across disposables
+    // // https://github.com/flutter/flutter/issues/137435
+    // if (kFlutterMemoryAllocationsEnabled) {
+    //   FlutterMemoryAllocations.instance.dispatchObjectCreated(
+    //     library: 'package:flutter/widgets.dart',
+    //     className: '$_OriginalNestedScrollCoordinator',
+    //     object: this,
+    //   );
+    // }
     final double initialScrollOffset = _parent?.initialScrollOffset ?? 0.0;
     _outerController = _OriginalNestedScrollController(
       this,
@@ -875,17 +915,20 @@ class _OriginalNestedScrollCoordinator
     if (!_outerPosition!.haveDimensions) {
       return;
     }
-    double maxInnerExtent = 0.0;
+
+    bool innerCanDrag = false;
     for (final _OriginalNestedScrollPosition position in _innerPositions) {
       if (!position.haveDimensions) {
         return;
       }
-      maxInnerExtent = math.max(
-        maxInnerExtent,
-        position.maxScrollExtent - position.minScrollExtent,
-      );
+      innerCanDrag = innerCanDrag
+          // This refers to the physics of the actual inner scroll position, not
+          // the whole NestedScrollView, since it is possible to have different
+          // ScrollPhysics for the inner and outer positions.
+          ||
+          position.physics.shouldAcceptUserOffset(position);
     }
-    _outerPosition!.updateCanDrag(maxInnerExtent);
+    _outerPosition!.updateCanDrag(innerCanDrag);
   }
 
   Future<void> animateTo(
@@ -968,7 +1011,7 @@ class _OriginalNestedScrollCoordinator
           outerDelta = math.max(outerDelta, potentialOuterDelta);
         }
       }
-      if (outerDelta != 0.0) {
+      if (outerDelta.abs() > precisionErrorTolerance) {
         final double innerDelta =
             _outerPosition!.applyClampedPointerSignalUpdate(
           outerDelta,
@@ -1074,7 +1117,7 @@ class _OriginalNestedScrollCoordinator
           outerDelta = math.max(outerDelta, potentialOuterDelta);
         }
       }
-      if (outerDelta != 0.0) {
+      if (outerDelta.abs() > precisionErrorTolerance) {
         final double innerDelta = _outerPosition!.applyClampedDragUpdate(
           outerDelta,
         );
@@ -1134,6 +1177,9 @@ class _OriginalNestedScrollCoordinator
 
   @mustCallSuper
   void dispose() {
+    // if (kFlutterMemoryAllocationsEnabled) {
+    //   FlutterMemoryAllocations.instance.dispatchObjectDisposed(object: this);
+    // }
     _currentDrag?.dispose();
     _currentDrag = null;
     _outerController.dispose();
@@ -1199,6 +1245,7 @@ class _OriginalNestedScrollController extends ScrollController {
       (Duration timeStamp) {
         coordinator.updateShadow();
       },
+      // debugLabel: 'NestedScrollController.updateShadow',
     );
   }
 
@@ -1320,8 +1367,8 @@ class _OriginalNestedScrollPosition extends ScrollPosition
           this,
           delta,
         );
-    if (oldPixels == newPixels) {
-      // Delta must have been so small we dropped it during floating point addition.
+    if ((oldPixels - newPixels).abs() < precisionErrorTolerance) {
+      // Delta is so small we can drop it.
       return 0.0;
     }
     // Check for overscroll:
@@ -1484,9 +1531,15 @@ class _OriginalNestedScrollPosition extends ScrollPosition
     coordinator.updateCanDrag();
   }
 
-  void updateCanDrag(double totalExtent) {
-    context.setCanDrag(totalExtent > (viewportDimension - maxScrollExtent) ||
-        minScrollExtent != maxScrollExtent);
+  void updateCanDrag(bool innerCanDrag) {
+    // This is only called for the outer position
+    assert(coordinator._outerPosition == this);
+    context.setCanDrag(
+      // This refers to the physics of the actual outer scroll position, not
+      // the whole NestedScrollView, since it is possible to have different
+      // ScrollPhysics for the inner and outer positions.
+      physics.shouldAcceptUserOffset(this) || innerCanDrag,
+    );
   }
 
   @override
@@ -1633,6 +1686,13 @@ class _OriginalNestedOuterBallisticScrollActivity
 ///    [OriginalSliverOverlapAbsorber] to align its children, and which shows sample
 ///    usage for this class.
 class OriginalOverlapAbsorberHandle extends ChangeNotifier {
+  /// Creates a [OriginalOverlapAbsorberHandle].
+  OriginalOverlapAbsorberHandle() {
+    if (kFlutterMemoryAllocationsEnabled) {
+      ChangeNotifier.maybeDispatchObjectCreation(this);
+    }
+  }
+
   // Incremented when a OriginalRenderSliverOverlapAbsorber takes ownership of this
   // object, decremented when it releases it. This allows us to find cases where
   // the same handle is being passed to two render objects.
@@ -1712,8 +1772,6 @@ class OriginalOverlapAbsorberHandle extends ChangeNotifier {
 class OriginalSliverOverlapAbsorber extends SingleChildRenderObjectWidget {
   /// Creates a sliver that absorbs overlap and reports it to a
   /// [OriginalOverlapAbsorberHandle].
-  ///
-  /// The [handle] must not be null.
   const OriginalSliverOverlapAbsorber({
     super.key,
     required this.handle,
@@ -1758,8 +1816,6 @@ class OriginalRenderSliverOverlapAbsorber extends RenderSliver
     with RenderObjectWithChildMixin<RenderSliver> {
   /// Create a sliver that absorbs overlap and reports it to a
   /// [OriginalOverlapAbsorberHandle].
-  ///
-  /// The [handle] must not be null.
   ///
   /// The [sliver] must be a [RenderSliver].
   OriginalRenderSliverOverlapAbsorber({
@@ -1811,22 +1867,14 @@ class OriginalRenderSliverOverlapAbsorber extends RenderSliver
     }
     child!.layout(constraints, parentUsesSize: true);
     final SliverGeometry childLayoutGeometry = child!.geometry!;
-    geometry = SliverGeometry(
+    geometry = childLayoutGeometry.copyWith(
       scrollExtent: childLayoutGeometry.scrollExtent -
           childLayoutGeometry.maxScrollObstructionExtent,
-      paintExtent: childLayoutGeometry.paintExtent,
-      paintOrigin: childLayoutGeometry.paintOrigin,
       layoutExtent: math.max(
-          0,
-          childLayoutGeometry.paintExtent -
-              childLayoutGeometry.maxScrollObstructionExtent),
-      maxPaintExtent: childLayoutGeometry.maxPaintExtent,
-      maxScrollObstructionExtent:
-          childLayoutGeometry.maxScrollObstructionExtent,
-      hitTestExtent: childLayoutGeometry.hitTestExtent,
-      visible: childLayoutGeometry.visible,
-      hasVisualOverflow: childLayoutGeometry.hasVisualOverflow,
-      scrollOffsetCorrection: childLayoutGeometry.scrollOffsetCorrection,
+        0,
+        childLayoutGeometry.paintExtent -
+            childLayoutGeometry.maxScrollObstructionExtent,
+      ),
     );
     handle._setExtents(
       childLayoutGeometry.maxScrollObstructionExtent,
@@ -1881,8 +1929,6 @@ class OriginalRenderSliverOverlapAbsorber extends RenderSliver
 class OriginalSliverOverlapInjector extends SingleChildRenderObjectWidget {
   /// Creates a sliver that is as tall as the value of the given [handle]'s
   /// layout extent.
-  ///
-  /// The [handle] must not be null.
   const OriginalSliverOverlapInjector({
     super.key,
     required this.handle,
@@ -1925,8 +1971,6 @@ class OriginalSliverOverlapInjector extends SingleChildRenderObjectWidget {
 /// during a particular frame.
 class OriginalRenderSliverOverlapInjector extends RenderSliver {
   /// Creates a sliver that is as tall as the value of the given [handle]'s extent.
-  ///
-  /// The [handle] must not be null.
   OriginalRenderSliverOverlapInjector({
     required OriginalOverlapAbsorberHandle handle,
   }) : _handle = handle;
@@ -1978,6 +2022,14 @@ class OriginalRenderSliverOverlapInjector extends RenderSliver {
   void performLayout() {
     _currentLayoutExtent = handle.layoutExtent;
     _currentMaxExtent = handle.layoutExtent;
+    assert(
+        _currentLayoutExtent != null && _currentMaxExtent != null,
+        'SliverOverlapInjector has found no absorbed extent to inject.\n '
+        'The SliverOverlapAbsorber must be an earlier descendant of a common '
+        'ancestor Viewport, so that it will always be laid out before the '
+        'SliverOverlapInjector during a particular frame.\n '
+        'The SliverOverlapAbsorber is typically contained in the list of slivers '
+        'provided by NestedScrollView.headerSliverBuilder.\n');
     final double clampedLayoutExtent = math.min(
       _currentLayoutExtent! - constraints.scrollOffset,
       constraints.remainingPaintExtent,
@@ -2041,8 +2093,6 @@ class OriginalRenderSliverOverlapInjector extends RenderSliver {
 /// the viewport needs to recompute its layout (e.g. when it is scrolled).
 class OriginalNestedScrollViewViewport extends Viewport {
   /// Creates a variant of [Viewport] that has a [OriginalOverlapAbsorberHandle].
-  ///
-  /// The [handle] must not be null.
   OriginalNestedScrollViewViewport({
     super.key,
     super.axisDirection,
@@ -2106,8 +2156,6 @@ class OriginalNestedScrollViewViewport extends Viewport {
 class OriginalRenderNestedScrollViewViewport extends RenderViewport {
   /// Create a variant of [RenderViewport] that has a
   /// [OriginalOverlapAbsorberHandle].
-  ///
-  /// The [handle] must not be null.
   OriginalRenderNestedScrollViewViewport({
     super.axisDirection,
     required super.crossAxisDirection,

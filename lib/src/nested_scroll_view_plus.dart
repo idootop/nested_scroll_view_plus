@@ -50,9 +50,7 @@ class NestedScrollViewPlus extends StatelessWidget {
     this.controller,
     this.scrollDirection = Axis.vertical,
     this.reverse = false,
-    this.physics = const BouncingScrollPhysics(
-      parent: AlwaysScrollableScrollPhysics(),
-    ),
+    this.physics,
     required this.headerSliverBuilder,
     required this.body,
     this.dragStartBehavior = DragStartBehavior.start,

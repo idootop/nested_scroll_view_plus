@@ -43,6 +43,45 @@ class NestedScrollViewPlusOuterState extends NestedScrollViewStatePlus {
       widget.floatHeaderSlivers,
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    const defalutPhysics = BouncingScrollPhysics(
+      parent: AlwaysScrollableScrollPhysics(),
+    );
+    final ScrollPhysics scrollPhysics =
+        widget.physics?.applyTo(defalutPhysics) ??
+            widget.scrollBehavior
+                ?.getScrollPhysics(context)
+                .applyTo(defalutPhysics) ??
+            defalutPhysics;
+
+    return _OriginalInheritedNestedScrollView(
+      state: this,
+      child: Builder(
+        builder: (BuildContext context) {
+          _lastHasScrolledBody = _coordinator!.hasScrolledBody;
+          return _OriginalNestedScrollViewCustomScrollView(
+            dragStartBehavior: widget.dragStartBehavior,
+            scrollDirection: widget.scrollDirection,
+            reverse: widget.reverse,
+            physics: scrollPhysics,
+            scrollBehavior: widget.scrollBehavior ??
+                ScrollConfiguration.of(context).copyWith(scrollbars: false),
+            controller: _coordinator!._outerController,
+            slivers: widget._buildSlivers(
+              context,
+              _coordinator!._innerController,
+              _lastHasScrolledBody!,
+            ),
+            handle: _absorberHandle,
+            clipBehavior: widget.clipBehavior,
+            restorationId: widget.restorationId,
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _NestedScrollControllerOuter extends _OriginalNestedScrollController {
@@ -140,33 +179,49 @@ class _NestedScrollCoordinatorOuter extends _OriginalNestedScrollCoordinator {
     );
   }
 
+  // inner/outer offset -> coordinator offset
   @override
   double unnestOffset(double value, _OriginalNestedScrollPosition source) {
     if (source == _outerPosition) {
-      return value;
-    } else {
-      if (_outerPosition!.maxScrollExtent - _outerPosition!.pixels >
-          precisionErrorTolerance) {
-        return _outerPosition!.pixels;
-      }
-      return _outerPosition!.maxScrollExtent + (value - source.minScrollExtent);
+      // coordinator offset = outer.value
+      return value.clamp(
+        -1 * double.infinity,
+        _outerPosition!.maxScrollExtent,
+      );
     }
+    // outer is scrolling
+    if (_outerPosition!.maxScrollExtent - _outerPosition!.pixels >
+        precisionErrorTolerance) {
+      // coordinator offset = outer.value
+      return _outerPosition!.pixels.clamp(
+        -1 * double.infinity,
+        _outerPosition!.maxScrollExtent,
+      );
+    }
+    // inner is scrolling
+    // coordinator offset = outer.max + inner offset
+    final offset = value - source.minScrollExtent;
+    return _outerPosition!.maxScrollExtent + offset;
   }
 
+  // coordinator offset -> inner/outer offset
   @override
   double nestOffset(double value, _OriginalNestedScrollPosition target) {
     if (target == _outerPosition) {
-      if (value > _outerPosition!.maxScrollExtent) {
-        return _outerPosition!.maxScrollExtent;
-      }
-      return value;
-    } else {
-      if (value < _outerPosition!.maxScrollExtent) {
-        return target.minScrollExtent;
-      }
-      return (target.minScrollExtent +
-          (value - _outerPosition!.maxScrollExtent));
+      return value.clamp(
+        -1 * double.infinity,
+        _outerPosition!.maxScrollExtent,
+      );
     }
+    if (value > _outerPosition!.maxScrollExtent) {
+      // inner is scrolling
+      // inner offset = inner.min + offset
+      final offset = value - _outerPosition!.maxScrollExtent;
+      return target.minScrollExtent + offset;
+    }
+    // outer is scrolling, inner is initial status
+    // inner offset = inner.min
+    return target.minScrollExtent;
   }
 
   @override
@@ -176,41 +231,31 @@ class _NestedScrollCoordinatorOuter extends _OriginalNestedScrollCoordinator {
     if (_innerPositions.isEmpty) {
       _outerPosition!.applyFullDragUpdate(delta);
     } else if (delta < 0.0) {
-      double outerDelta = delta;
+      // ⬆️
+      double remainingDelta = delta;
+      // apply remaining delta to outer(clamped) first
+      remainingDelta = _outerPosition!.applyClampedDragUpdate(remainingDelta);
+      // apply remaining delta to inner
       for (final position in _innerPositions) {
-        if (position.pixels < position.minScrollExtent) {
-          final potentialOuterDelta = position.applyClampedDragUpdate(delta);
-          if (potentialOuterDelta < 0) {
-            outerDelta = math.max(outerDelta, potentialOuterDelta);
-          }
-        }
-      }
-      if (outerDelta != 0.0) {
-        final innerDelta = _outerPosition!.applyClampedDragUpdate(
-          outerDelta,
-        );
-        if (innerDelta != 0.0) {
-          for (final position in _innerPositions) {
-            position.applyFullDragUpdate(innerDelta);
-          }
+        if (remainingDelta < 0) {
+          remainingDelta = position.applyFullDragUpdate(remainingDelta);
         }
       }
     } else {
-      double innerDelta = delta;
+      // ⬇️
+      double remainingDelta = delta;
       if (_floatHeaderSlivers) {
-        innerDelta = _outerPosition!.applyClampedDragUpdate(delta);
+        remainingDelta = _outerPosition!.applyClampedDragUpdate(remainingDelta);
       }
-      if (innerDelta != 0.0) {
-        double outerDelta = 0.0;
-        for (final position in _innerPositions) {
-          final overscroll = position.applyClampedDragUpdate(innerDelta);
-          if (overscroll > 0) {
-            outerDelta = math.max(outerDelta, overscroll);
-          }
+      // apply remaining delta to inner(clamped) first
+      for (final position in _innerPositions) {
+        if (remainingDelta > 0) {
+          remainingDelta = position.applyClampedDragUpdate(remainingDelta);
         }
-        if (outerDelta != 0.0) {
-          _outerPosition!.applyFullDragUpdate(outerDelta);
-        }
+      }
+      // apply remaining delta to outer(overscroll)
+      if (remainingDelta > 0) {
+        _outerPosition!.applyFullDragUpdate(remainingDelta);
       }
     }
   }
@@ -373,30 +418,23 @@ class RenderSliverOverlapAbsorberOuter
       return;
     }
     child!.layout(constraints, parentUsesSize: true);
-    final SliverGeometry childLayoutGeometry = child!.geometry!;
+    final childLayoutGeometry = child!.geometry!;
     final maxExtent = childLayoutGeometry.scrollExtent;
     final minExtent = childLayoutGeometry.maxScrollObstructionExtent;
     final currentExtent = childLayoutGeometry.paintExtent;
-    // final topOverscroll = currentExtent > maxExtent;
+    if (maxExtent == minExtent) {
+      geometry = childLayoutGeometry;
+      return;
+    }
     final topOverscrollExtend =
         (currentExtent - maxExtent).clamp(0, double.infinity);
-    final atBottom =
-        (currentExtent - minExtent).abs() < precisionErrorTolerance;
-    final scrollExtend = atBottom ? maxExtent - minExtent : maxExtent;
-    final layoutExtent =
-        atBottom ? minExtent : currentExtent - topOverscrollExtend;
-    geometry = SliverGeometry(
+    final t = (currentExtent - minExtent) / (maxExtent - minExtent);
+    final absorbsExtend = (1 - t).clamp(0, 1) * minExtent;
+    final scrollExtend = maxExtent - absorbsExtend;
+    final layoutExtent = currentExtent - topOverscrollExtend;
+    geometry = childLayoutGeometry.copyWith(
       scrollExtent: scrollExtend,
       layoutExtent: layoutExtent,
-      paintExtent: childLayoutGeometry.paintExtent,
-      paintOrigin: childLayoutGeometry.paintOrigin,
-      maxPaintExtent: childLayoutGeometry.maxPaintExtent,
-      maxScrollObstructionExtent:
-          childLayoutGeometry.maxScrollObstructionExtent,
-      hitTestExtent: childLayoutGeometry.hitTestExtent,
-      visible: childLayoutGeometry.visible,
-      hasVisualOverflow: childLayoutGeometry.hasVisualOverflow,
-      scrollOffsetCorrection: childLayoutGeometry.scrollOffsetCorrection,
     );
     handle._setExtents(0, 0);
   }

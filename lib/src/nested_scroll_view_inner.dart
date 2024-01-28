@@ -43,6 +43,43 @@ class NestedScrollViewInnerState extends NestedScrollViewStatePlus {
       widget.floatHeaderSlivers,
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    const defalutPhysics = ClampingScrollPhysics();
+    final ScrollPhysics scrollPhysics =
+        widget.physics?.applyTo(defalutPhysics) ??
+            widget.scrollBehavior
+                ?.getScrollPhysics(context)
+                .applyTo(defalutPhysics) ??
+            defalutPhysics;
+
+    return _OriginalInheritedNestedScrollView(
+      state: this,
+      child: Builder(
+        builder: (BuildContext context) {
+          _lastHasScrolledBody = _coordinator!.hasScrolledBody;
+          return _OriginalNestedScrollViewCustomScrollView(
+            dragStartBehavior: widget.dragStartBehavior,
+            scrollDirection: widget.scrollDirection,
+            reverse: widget.reverse,
+            physics: scrollPhysics,
+            scrollBehavior: widget.scrollBehavior ??
+                ScrollConfiguration.of(context).copyWith(scrollbars: false),
+            controller: _coordinator!._outerController,
+            slivers: widget._buildSlivers(
+              context,
+              _coordinator!._innerController,
+              _lastHasScrolledBody!,
+            ),
+            handle: _absorberHandle,
+            clipBehavior: widget.clipBehavior,
+            restorationId: widget.restorationId,
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _NestedScrollControllerInner extends _OriginalNestedScrollController {
@@ -140,27 +177,117 @@ class _NestedScrollCoordinatorInner extends _OriginalNestedScrollCoordinator {
     );
   }
 
+  // inner/outer offset -> coordinator offset
   @override
   double unnestOffset(double value, _OriginalNestedScrollPosition source) {
     if (source == _outerPosition) {
+      // coordinator offset = outer.value
       return value.clamp(
         _outerPosition!.minScrollExtent,
         _outerPosition!.maxScrollExtent,
       );
     }
+    // outer is scrolling
     if (_outerPosition!.maxScrollExtent - _outerPosition!.pixels >
             precisionErrorTolerance &&
         (_outerPosition!.pixels - _outerPosition!.minScrollExtent) >
             precisionErrorTolerance) {
+      // coordinator offset = outer.value
       return _outerPosition!.pixels.clamp(
         _outerPosition!.minScrollExtent,
         _outerPosition!.maxScrollExtent,
       );
     }
+    // top overscroll
     if (value <= source.minScrollExtent) {
-      return value - source.minScrollExtent + _outerPosition!.minScrollExtent;
+      // coordinator offset = inner.min - top overscroll
+      final overscroll = source.minScrollExtent - value;
+      return _outerPosition!.minScrollExtent - overscroll;
     }
-    return value - source.minScrollExtent + _outerPosition!.maxScrollExtent;
+    // inner is scrolling
+    // coordinator offset = outer.max + inner offset
+    final offset = value - source.minScrollExtent;
+    return _outerPosition!.maxScrollExtent + offset;
+  }
+
+  // coordinator offset -> inner/outer offset
+  @override
+  double nestOffset(double value, _OriginalNestedScrollPosition target) {
+    if (target == _outerPosition) {
+      return clampDouble(
+        value,
+        _outerPosition!.minScrollExtent,
+        _outerPosition!.maxScrollExtent,
+      );
+    }
+    // top overscroll
+    if (value <= _outerPosition!.minScrollExtent) {
+      // inner offset = inner.min - top overscroll
+      final overscroll = _outerPosition!.minScrollExtent - value;
+      return target.minScrollExtent - overscroll;
+    }
+    if (value > _outerPosition!.maxScrollExtent) {
+      // inner is scrolling
+      // inner offset = inner.min + offset
+      final offset = value - _outerPosition!.maxScrollExtent;
+      return target.minScrollExtent + offset;
+    }
+    // outer is scrolling, inner is initial status
+    // inner offset = inner.min
+    return target.minScrollExtent;
+  }
+
+  @override
+  void applyUserOffset(double delta) {
+    updateUserScrollDirection(
+      delta > 0.0 ? ScrollDirection.forward : ScrollDirection.reverse,
+    );
+    assert(delta != 0.0);
+    if (_innerPositions.isEmpty) {
+      _outerPosition!.applyFullDragUpdate(delta);
+    } else if (delta < 0.0) {
+      // ⬆️
+      double remainingDelta = delta;
+      // apply remaining delta to inner(clamped) first
+      for (final position in _innerPositions) {
+        if (position.pixels < position.minScrollExtent // top overscroll inner
+            &&
+            remainingDelta < 0) {
+          remainingDelta = position.applyClampedDragUpdate(remainingDelta);
+        }
+      }
+      // apply remaining delta to outer(clamped)
+      if (remainingDelta < 0) {
+        remainingDelta = _outerPosition!.applyClampedDragUpdate(remainingDelta);
+      }
+      // apply remaining delta to inner
+      for (final position in _innerPositions) {
+        if (remainingDelta < 0) {
+          remainingDelta = position.applyFullDragUpdate(remainingDelta);
+        }
+      }
+    } else {
+      // ⬇️
+      double remainingDelta = delta;
+      if (_floatHeaderSlivers) {
+        remainingDelta = _outerPosition!.applyClampedDragUpdate(remainingDelta);
+      }
+      // apply remaining delta to inner(clamped) first
+      for (final position in _innerPositions) {
+        if (remainingDelta > 0) {
+          remainingDelta = position.applyClampedDragUpdate(remainingDelta);
+        }
+      }
+      // apply remaining delta to outer(clamped)
+      if (remainingDelta > 0) {
+        remainingDelta = _outerPosition!.applyClampedDragUpdate(remainingDelta);
+      } // apply remaining delta to inner(overscroll)
+      for (final position in _innerPositions) {
+        if (remainingDelta > 0) {
+          remainingDelta = position.applyFullDragUpdate(remainingDelta);
+        }
+      }
+    }
   }
 }
 
@@ -327,18 +454,9 @@ class RenderSliverOverlapAbsorberInner
     final scrollExtend =
         isOuterScrollShrinking ? maxExtent - minExtent : maxExtent;
     final layoutExtent = isOuterScrollShrinking ? currentExtent : currentExtent;
-    geometry = SliverGeometry(
+    geometry = childLayoutGeometry.copyWith(
       scrollExtent: scrollExtend,
       layoutExtent: layoutExtent,
-      paintExtent: childLayoutGeometry.paintExtent,
-      paintOrigin: childLayoutGeometry.paintOrigin,
-      maxPaintExtent: childLayoutGeometry.maxPaintExtent,
-      maxScrollObstructionExtent:
-          childLayoutGeometry.maxScrollObstructionExtent,
-      hitTestExtent: childLayoutGeometry.hitTestExtent,
-      visible: childLayoutGeometry.visible,
-      hasVisualOverflow: childLayoutGeometry.hasVisualOverflow,
-      scrollOffsetCorrection: childLayoutGeometry.scrollOffsetCorrection,
     );
     handle._setExtents(0, 0);
   }

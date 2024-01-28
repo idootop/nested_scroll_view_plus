@@ -1,12 +1,14 @@
 # nested_scroll_view_plus
 
+[![pub package](https://img.shields.io/pub/v/nested_scroll_view_plus.svg)](https://pub.dev/packages/nested_scroll_view_plus)
+
 An enhanced NestedScrollView with support for overscrolling for both the inner and outer scrollviews.
 
 ## 🔥 Preview
 
-![](demo.gif)
-
 Try it online: [https://flutter-nested-scroll-view-plus.vercel.app](https://flutter-nested-scroll-view-plus.vercel.app)
+
+![](demo.gif)
 
 ## 💡 Usage
 
