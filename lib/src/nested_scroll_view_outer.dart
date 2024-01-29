@@ -259,6 +259,30 @@ class _NestedScrollCoordinatorOuter extends _OriginalNestedScrollCoordinator {
       }
     }
   }
+
+  @override
+  void pointerScroll(double delta) {
+    if (delta == 0.0) {
+      goBallistic(0.0);
+      return;
+    }
+    // start scroll
+    goIdle();
+    _outerPosition!.isScrollingNotifier.value = true;
+    _outerPosition!.didStartScroll();
+    for (final position in _innerPositions) {
+      position.isScrollingNotifier.value = true;
+      position.didStartScroll();
+    }
+    // apply scroll offset
+    applyUserOffset(delta);
+    // end scroll
+    _outerPosition!.didEndScroll();
+    for (final position in _innerPositions) {
+      position.didEndScroll();
+    }
+    goBallistic(0.0);
+  }
 }
 
 class _NestedScrollPositionOuter extends _OriginalNestedScrollPosition {
