@@ -11,6 +11,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:nested_scroll_view_plus/src/multi_sliver/multi_sliver.dart';
 
 part 'nested_scroll_view_outer.dart';
 part 'nested_scroll_view_inner.dart';

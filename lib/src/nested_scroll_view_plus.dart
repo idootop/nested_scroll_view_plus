@@ -31,7 +31,7 @@ class NestedScrollViewPlus extends StatelessWidget {
   /// );
   /// ```
   ///
-  /// **[🚨IMPORTANT]** Ensure that the `physics` property of the `CustomScrollView` within the body is set to `AlwaysScrollableScrollPhysics` to guarantee proper scrolling behavior.
+  /// Note: Floating header slivers are not supported.
   ///
   // ignore: use_key_in_widget_constructors
   const NestedScrollViewPlus({
@@ -42,12 +42,13 @@ class NestedScrollViewPlus extends StatelessWidget {
     this.physics,
     required this.headerSliverBuilder,
     required this.body,
-    this.floatHeaderSlivers = false,
+    // this.floatHeaderSlivers = false,
     this.dragStartBehavior = DragStartBehavior.start,
     this.clipBehavior = Clip.hardEdge,
     this.restorationId,
     this.scrollBehavior,
     this.overscrollBehavior = OverscrollBehavior.outer,
+    this.pushPinnedHeaderSlivers = false,
   }) : _key = key;
 
   final Key? _key;
@@ -57,13 +58,17 @@ class NestedScrollViewPlus extends StatelessWidget {
   final ScrollPhysics? physics;
   final OriginalNestedScrollViewHeaderSliversBuilder headerSliverBuilder;
   final Widget body;
-  final bool floatHeaderSlivers;
+  // final bool floatHeaderSlivers;
   final DragStartBehavior dragStartBehavior;
   final Clip clipBehavior;
   final String? restorationId;
   final ScrollBehavior? scrollBehavior;
 
   final OverscrollBehavior overscrollBehavior;
+
+  /// If true any header sliver that paint beyond the layoutExtent of the entire outer scroll view will
+  /// be pushed off towards the leading edge of the outer scroll view.
+  final bool pushPinnedHeaderSlivers;
 
   @override
   Widget build(BuildContext context) {
@@ -77,10 +82,11 @@ class NestedScrollViewPlus extends StatelessWidget {
             headerSliverBuilder: headerSliverBuilder,
             body: body,
             dragStartBehavior: dragStartBehavior,
-            floatHeaderSlivers: floatHeaderSlivers,
+            floatHeaderSlivers: false,
             clipBehavior: clipBehavior,
             restorationId: restorationId,
             scrollBehavior: scrollBehavior,
+            pushPinnedHeaderSlivers: pushPinnedHeaderSlivers,
           )
         : NestedScrollViewInner(
             key: _key,
@@ -91,10 +97,11 @@ class NestedScrollViewPlus extends StatelessWidget {
             headerSliverBuilder: headerSliverBuilder,
             body: body,
             dragStartBehavior: dragStartBehavior,
-            floatHeaderSlivers: floatHeaderSlivers,
+            floatHeaderSlivers: false,
             clipBehavior: clipBehavior,
             restorationId: restorationId,
             scrollBehavior: scrollBehavior,
+            pushPinnedHeaderSlivers: pushPinnedHeaderSlivers,
           );
   }
 
@@ -110,7 +117,8 @@ class NestedScrollViewPlus extends StatelessWidget {
   }
 }
 
-@Deprecated('As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
+@Deprecated(
+    'As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
 class SliverOverlapAbsorberPlus extends OriginalSliverOverlapAbsorber {
   const SliverOverlapAbsorberPlus({
     super.key,
@@ -129,7 +137,8 @@ class SliverOverlapAbsorberPlus extends OriginalSliverOverlapAbsorber {
   }
 }
 
-@Deprecated('As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
+@Deprecated(
+    'As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
 class OverlapAbsorberPlus extends StatelessWidget {
   const OverlapAbsorberPlus({
     super.key,
@@ -152,7 +161,8 @@ class OverlapAbsorberPlus extends StatelessWidget {
   }
 }
 
-@Deprecated('No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
+@Deprecated(
+    'No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
 class SliverOverlapInjectorPlus extends OriginalSliverOverlapInjector {
   const SliverOverlapInjectorPlus({
     super.key,
@@ -171,8 +181,8 @@ class SliverOverlapInjectorPlus extends OriginalSliverOverlapInjector {
   }
 }
 
-
-@Deprecated('No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
+@Deprecated(
+    'No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
 class OverlapInjectorPlus extends StatelessWidget {
   const OverlapInjectorPlus({
     super.key,

@@ -14,7 +14,10 @@ class NestedScrollViewInner extends OriginalNestedScrollView {
     super.clipBehavior = Clip.hardEdge,
     super.restorationId,
     super.scrollBehavior,
+    this.pushPinnedHeaderSlivers = false,
   });
+
+  final bool pushPinnedHeaderSlivers;
 
   static OriginalOverlapAbsorberHandle sliverOverlapAbsorberHandleFor(
       BuildContext context) {
@@ -26,6 +29,32 @@ class NestedScrollViewInner extends OriginalNestedScrollView {
       'OriginalNestedScrollView.sliverOverlapAbsorberHandleFor must be called with a context that contains a OriginalNestedScrollView.',
     );
     return target!.state._absorberHandle;
+  }
+
+  @override
+  List<Widget> _buildSlivers(
+    BuildContext context,
+    ScrollController innerController,
+    bool bodyIsScrolled,
+  ) {
+    final headerSlivers = headerSliverBuilder(context, bodyIsScrolled);
+    return <Widget>[
+      // ignore: deprecated_member_use_from_same_package
+      OverlapAbsorberPlus(
+        overscrollBehavior: OverscrollBehavior.inner,
+        sliver: MultiSliver(
+          pushPinnedChildren: pushPinnedHeaderSlivers,
+          children: headerSlivers,
+        ),
+      ),
+      SliverFillRemaining(
+        child: PrimaryScrollController(
+          automaticallyInheritForPlatforms: TargetPlatform.values.toSet(),
+          controller: innerController,
+          child: body,
+        ),
+      ),
+    ];
   }
 
   @override
@@ -429,7 +458,8 @@ class _NestedInnerBallisticScrollActivityInner
   }
 }
 
-@Deprecated('As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
+@Deprecated(
+    'As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
 class SliverOverlapAbsorberInner extends OriginalSliverOverlapAbsorber {
   const SliverOverlapAbsorberInner({
     super.key,
@@ -445,7 +475,8 @@ class SliverOverlapAbsorberInner extends OriginalSliverOverlapAbsorber {
   }
 }
 
-@Deprecated('As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
+@Deprecated(
+    'As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
 class RenderSliverOverlapAbsorberInner
     extends OriginalRenderSliverOverlapAbsorber {
   RenderSliverOverlapAbsorberInner({
@@ -481,7 +512,8 @@ class RenderSliverOverlapAbsorberInner
   }
 }
 
-@Deprecated('No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
+@Deprecated(
+    'No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
 class SliverOverlapInjectorInner extends OriginalSliverOverlapInjector {
   const SliverOverlapInjectorInner({
     super.key,
@@ -497,7 +529,8 @@ class SliverOverlapInjectorInner extends OriginalSliverOverlapInjector {
   }
 }
 
-@Deprecated('No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
+@Deprecated(
+    'No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
 class RenderSliverOverlapInjectorInner
     extends OriginalRenderSliverOverlapInjector {
   RenderSliverOverlapInjectorInner({

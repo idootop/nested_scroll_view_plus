@@ -3,23 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
 
-void main() => runApp(
-      SafeArea(
-        top: true,
-        child: MaterialApp(
-          theme: ThemeData.light(useMaterial3: true).copyWith(
-            primaryColor: Colors.black,
-            tabBarTheme: const TabBarTheme(
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
-              indicatorColor: Colors.white,
-            ),
-            appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
-          ),
-          home: const Example(),
-        ),
-      ),
-    );
+void main() => runApp(myAPP());
 
 class Example extends StatefulWidget {
   const Example({super.key});
@@ -29,6 +13,29 @@ class Example extends StatefulWidget {
 }
 
 class _ExampleState extends State<Example> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: DefaultTabController(
+        length: 2,
+        child: NestedScrollViewPlus(
+          key: myKey,
+          // physics: NeverScrollableScrollPhysics(),
+          overscrollBehavior: OverscrollBehavior.outer,
+          headerSliverBuilder: (context, innerScrolled) => <Widget>[
+            const MySliverAppBar(),
+          ],
+          body: TabBarView(
+            children: [
+              _tabView(),
+              _tabView(true),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   final GlobalKey<NestedScrollViewStatePlus> myKey = GlobalKey();
 
   @override
@@ -51,42 +58,6 @@ class _ExampleState extends State<Example> {
         }
       });
     });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: DefaultTabController(
-        length: 2,
-        child: NestedScrollViewPlus(
-          key: myKey,
-          // physics: NeverScrollableScrollPhysics(),
-          overscrollBehavior: OverscrollBehavior.outer,
-          headerSliverBuilder: (context, innerScrolled) => <Widget>[
-            const MySliverAppBar(),
-            const SliverAppBar(
-              pinned: true,
-              stretch: true,
-              backgroundColor: Colors.black,
-              collapsedHeight: 100,
-              expandedHeight: 160,
-            ),
-            SliverToBoxAdapter(
-              child: Container(
-                height: 0,
-                color: Colors.blue,
-              ),
-            )
-          ],
-          body: TabBarView(
-            children: [
-              _tabView(),
-              _tabView(true),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _tabView([bool reverse = false]) => CustomScrollView(
@@ -153,3 +124,19 @@ class MySliverAppBar extends StatelessWidget {
     );
   }
 }
+
+myAPP() => SafeArea(
+      top: true,
+      child: MaterialApp(
+        theme: ThemeData.light(useMaterial3: true).copyWith(
+          primaryColor: Colors.black,
+          tabBarTheme: const TabBarTheme(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
+          ),
+          appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
+        ),
+        home: const Example(),
+      ),
+    );
