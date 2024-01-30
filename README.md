@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/nested_scroll_view_plus.svg)](https://pub.dev/packages/nested_scroll_view_plus)
 
-An enhanced NestedScrollView with support for overscrolling for both the inner and outer scrollviews.
+An enhanced NestedScrollView offering overscroll support for both the nested and parent scroll views, ensuring a seamless scrolling experience.
 
 ## 🔥 Preview
 
@@ -21,9 +21,8 @@ flutter pub add nested_scroll_view_plus
 
 Example usage:
 
-1. Wrap your `SliverAppBar` with `OverlapAbsorberPlus`
-2. Use `OverlapInjectorPlus` on top of your inner `CustomScrollView`
-3. Change the physics of `CustomScrollView` to `AlwaysScrollableScrollPhysics`
+1. Replace `NestedScrollView` with `NestedScrollViewPlus`
+2. [🚨IMPORTANT] Set the physics of `CustomScrollView` to `AlwaysScrollableScrollPhysics`
 
 That's it!
 
@@ -32,25 +31,15 @@ import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
 
 NestedScrollViewPlus(
   headerSliverBuilder: (context, innerScrolled) => <Widget>[
-    // 1. Wrap your SliverAppBar with OverlapAbsorberPlus
-    OverlapAbsorberPlus(
-      sliver: SliverAppBar(), // Your SliverAppBar
-    ),
+    // ... insert your header sliver widgets here
   ],
-  body: TabBarView(
-    children: [
-      CustomScrollView(
-        // 2. [IMPORTANT] Change the physics of CustomScrollView to AlwaysScrollableScrollPhysics
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: <Widget>[
-          // 3. Use OverlapInjectorPlus on top of your inner CustomScrollView
-          OverlapInjectorPlus(),
-          // Other children of CustomScrollView
-          // ...,
-        ],
-      ),
+  body: CustomScrollView(
+    // Step 2: [🚨IMPORTANT] Set the physics of `CustomScrollView` to `AlwaysScrollableScrollPhysics`
+    physics: const BouncingScrollPhysics(
+      parent: AlwaysScrollableScrollPhysics(),
+    ),
+    slivers: <Widget>[
+      // ... insert your body sliver widgets here
     ],
   ),
 );
