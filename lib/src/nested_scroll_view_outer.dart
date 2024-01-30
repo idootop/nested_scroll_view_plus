@@ -398,6 +398,7 @@ class _NestedInnerBallisticScrollActivityOuter
   }
 }
 
+@Deprecated('As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
 class SliverOverlapAbsorberOuter extends OriginalSliverOverlapAbsorber {
   const SliverOverlapAbsorberOuter({
     super.key,
@@ -413,6 +414,7 @@ class SliverOverlapAbsorberOuter extends OriginalSliverOverlapAbsorber {
   }
 }
 
+@Deprecated('As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
 class RenderSliverOverlapAbsorberOuter
     extends OriginalRenderSliverOverlapAbsorber {
   RenderSliverOverlapAbsorberOuter({
@@ -448,6 +450,7 @@ class RenderSliverOverlapAbsorberOuter
   }
 }
 
+@Deprecated('No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
 class SliverOverlapInjectorOuter extends OriginalSliverOverlapInjector {
   const SliverOverlapInjectorOuter({
     super.key,
@@ -463,6 +466,7 @@ class SliverOverlapInjectorOuter extends OriginalSliverOverlapInjector {
   }
 }
 
+@Deprecated('No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
 class RenderSliverOverlapInjectorOuter
     extends OriginalRenderSliverOverlapInjector {
   RenderSliverOverlapInjectorOuter({

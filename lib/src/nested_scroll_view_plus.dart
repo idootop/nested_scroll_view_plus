@@ -110,6 +110,7 @@ class NestedScrollViewPlus extends StatelessWidget {
   }
 }
 
+@Deprecated('As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
 class SliverOverlapAbsorberPlus extends OriginalSliverOverlapAbsorber {
   const SliverOverlapAbsorberPlus({
     super.key,
@@ -128,6 +129,7 @@ class SliverOverlapAbsorberPlus extends OriginalSliverOverlapAbsorber {
   }
 }
 
+@Deprecated('As of version 2.0, wrapping child components with this widget is no longer required. Please remove the wrap from your child components')
 class OverlapAbsorberPlus extends StatelessWidget {
   const OverlapAbsorberPlus({
     super.key,
@@ -150,6 +152,7 @@ class OverlapAbsorberPlus extends StatelessWidget {
   }
 }
 
+@Deprecated('No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
 class SliverOverlapInjectorPlus extends OriginalSliverOverlapInjector {
   const SliverOverlapInjectorPlus({
     super.key,
@@ -168,6 +171,8 @@ class SliverOverlapInjectorPlus extends OriginalSliverOverlapInjector {
   }
 }
 
+
+@Deprecated('No longer needed as of v2.0. Remove the Injector widget from atop your scroll views.')
 class OverlapInjectorPlus extends StatelessWidget {
   const OverlapInjectorPlus({
     super.key,

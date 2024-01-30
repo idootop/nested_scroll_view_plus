@@ -63,9 +63,13 @@ class _ExampleState extends State<Example> {
           // physics: NeverScrollableScrollPhysics(),
           overscrollBehavior: OverscrollBehavior.outer,
           headerSliverBuilder: (context, innerScrolled) => <Widget>[
-            const OverlapAbsorberPlus(
-              overscrollBehavior: OverscrollBehavior.outer,
-              sliver: MySliverAppBar(),
+            const MySliverAppBar(),
+            const SliverAppBar(
+              pinned: true,
+              stretch: true,
+              backgroundColor: Colors.black,
+              collapsedHeight: 100,
+              expandedHeight: 160,
             ),
             SliverToBoxAdapter(
               child: Container(
@@ -92,9 +96,6 @@ class _ExampleState extends State<Example> {
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: <Widget>[
-          const OverlapInjectorPlus(
-            overscrollBehavior: OverscrollBehavior.outer,
-          ),
           SliverFixedExtentList(
             delegate: SliverChildBuilderDelegate(
               (_, index) => Container(
