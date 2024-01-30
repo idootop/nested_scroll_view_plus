@@ -18,7 +18,6 @@ Installation:
 flutter pub add nested_scroll_view_plus
 ```
 
-
 Example usage:
 
 1. Replace `NestedScrollView` with `NestedScrollViewPlus`
@@ -108,6 +107,23 @@ CustomScrollView(
 
 By assigning a unique key to the `CustomScrollView`, Flutter's `PageStorage` mechanism will store and restore the scroll position of the inner `CustomScrollViews`, allowing you to maintain the scroll positions even when the widget tree is rebuilt.
 
+### 🚀 Upgrade and Migration Guide
+
+With the release of version 2.0.0, there are a few important changes that require action when upgrading from an earlier version.
+
+**For Deprecated Widgets:**
+
+If you are using `OverlapAbsorberPlus` or `OverlapInjectorPlus` in your code, follow these steps:
+
+- Locate any header slivers wrapped with `OverlapAbsorberPlus` and remove the `OverlapAbsorberPlus` wrapper.
+- Remove any `OverlapInjectorPlus` widget that was placed atop your scroll views.
+
+**For OverscrollBehavior:**
+
+Search your codebase for any instance of OverscrollType and replace it with OverscrollBehavior. This will ensure compatibility with the new naming convention.
+
+By following these steps, you should be able to smoothly transition to version 2.0.0 without any significant issues. As always, it is recommended to test your application thoroughly after performing an upgrade to ensure that all features work as intended.
+
 ### ⭕️ For Older Flutter Versions
 
 If you are using an older version of Flutter, please follow these steps to install the appropriate branch from the [old git repository](https://github.com/idootop/custom_nested_scroll_view).
@@ -135,7 +151,7 @@ For more details, please visit the [old documentation](https://github.com/idooto
 
 ## ❤️ Acknowledgements
 
-- [extended_nested_scroll_view](https://github.com/fluttercandies/extended_nested_scroll_view)
+- [Flutter - 循序渐进 Sliver](https://juejin.cn/post/6844904155195129864)
 - [大道至简：Flutter 嵌套滑动冲突解决之路](https://vimerzhao.top/articles/flutter-nested-scroll-conflict/)
 - [深入进阶-如何解决 Flutter 上的滑动冲突？ ](https://juejin.cn/post/6900751363173515278)
 - [用 Flutter 实现 58App 的首页](https://blog.csdn.net/weixin_39891694/article/details/111217123)
