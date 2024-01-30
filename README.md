@@ -42,7 +42,7 @@ NestedScrollViewPlus(
 
 For additional examples, please visit the [scroll_master](https://github.com/idootop/scroll_master) repository. It includes features such as pull-to-refresh for `NestedScrollView`, combined scrolling for scrollview and tabview, and more.
 
-### 🚀 Upgrade and Migration Guide
+## 🚀 Upgrade and Migration Guide
 
 With the release of version 2.0.0, there are a few important changes that require action when upgrading from an earlier version.
 
@@ -59,9 +59,7 @@ Search your codebase for any instance of OverscrollType and replace it with Over
 
 By following these steps, you should be able to smoothly transition to version 2.0.0 without any significant issues. As always, it is recommended to test your application thoroughly after performing an upgrade to ensure that all features work as intended.
 
-## 📒 Others
-
-### ⚙️ Accessing the Inner or Outer Scroll Controller
+## ⚙️ Accessing the Inner or Outer Scroll Controller
 
 To access the inner or outer scroll controller of a `NestedScrollViewPlus`, you can use a `GlobalKey<NestedScrollViewStatePlus>` to get its state.
 
@@ -105,7 +103,7 @@ class _ExampleState extends State<Example> {
 }
 ```
 
-### 🚩 Preserve Scroll Positions of Inner CustomScrollViews
+## 🚩 Preserve Scroll Positions of Inner CustomScrollViews
 
 To preserve the scroll positions of inner `CustomScrollViews`, you can add a `PageStorageKey` to the `CustomScrollView` widget. Here's an example:
 
@@ -120,7 +118,7 @@ CustomScrollView(
 
 By assigning a unique key to the `CustomScrollView`, Flutter's `PageStorage` mechanism will store and restore the scroll position of the inner `CustomScrollViews`, allowing you to maintain the scroll positions even when the widget tree is rebuilt.
 
-### ⭕️ For Older Flutter Versions
+## ⭕️ For Older Flutter Versions
 
 If you are using an older version of Flutter, please follow these steps to install the appropriate branch from the [old git repository](https://github.com/idootop/custom_nested_scroll_view).
 
