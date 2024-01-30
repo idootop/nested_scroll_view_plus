@@ -46,15 +46,15 @@ class NestedScrollViewPlusOuterState extends NestedScrollViewStatePlus {
 
   @override
   Widget build(BuildContext context) {
-    const defalutPhysics = BouncingScrollPhysics(
+    const defaultPhysics = BouncingScrollPhysics(
       parent: AlwaysScrollableScrollPhysics(),
     );
     final ScrollPhysics scrollPhysics =
-        widget.physics?.applyTo(defalutPhysics) ??
+        widget.physics?.applyTo(defaultPhysics) ??
             widget.scrollBehavior
                 ?.getScrollPhysics(context)
-                .applyTo(defalutPhysics) ??
-            defalutPhysics;
+                .applyTo(defaultPhysics) ??
+            defaultPhysics;
 
     return _OriginalInheritedNestedScrollView(
       state: this,
@@ -182,8 +182,7 @@ class _NestedScrollCoordinatorOuter extends _OriginalNestedScrollCoordinator {
   // inner/outer offset -> coordinator offset
   @override
   double unnestOffset(double value, _OriginalNestedScrollPosition source) {
-    if (source == _outerPosition) {
-      // coordinator offset = outer.value
+    if (source.debugLabel == 'outer') {
       return value.clamp(
         -1 * double.infinity,
         _outerPosition!.maxScrollExtent,
@@ -201,27 +200,20 @@ class _NestedScrollCoordinatorOuter extends _OriginalNestedScrollCoordinator {
     // inner is scrolling
     // coordinator offset = outer.max + inner offset
     final offset = value - source.minScrollExtent;
-    return _outerPosition!.maxScrollExtent + offset;
+    return _outerPosition!.maxScrollExtent + offset.clamp(0, double.infinity);
   }
 
   // coordinator offset -> inner/outer offset
   @override
   double nestOffset(double value, _OriginalNestedScrollPosition target) {
-    if (target == _outerPosition) {
+    if (target.debugLabel == 'outer') {
       return value.clamp(
         -1 * double.infinity,
         _outerPosition!.maxScrollExtent,
       );
     }
-    if (value > _outerPosition!.maxScrollExtent) {
-      // inner is scrolling
-      // inner offset = inner.min + offset
-      final offset = value - _outerPosition!.maxScrollExtent;
-      return target.minScrollExtent + offset;
-    }
-    // outer is scrolling, inner is initial status
-    // inner offset = inner.min
-    return target.minScrollExtent;
+    final offset = value - _outerPosition!.maxScrollExtent;
+    return target.minScrollExtent + offset.clamp(0, double.infinity);
   }
 
   @override
@@ -253,7 +245,7 @@ class _NestedScrollCoordinatorOuter extends _OriginalNestedScrollCoordinator {
           remainingDelta = position.applyClampedDragUpdate(remainingDelta);
         }
       }
-      // apply remaining delta to outer(overscroll)
+      // apply remaining delta to outer(overflow)
       if (remainingDelta > 0) {
         _outerPosition!.applyFullDragUpdate(remainingDelta);
       }
@@ -266,7 +258,6 @@ class _NestedScrollCoordinatorOuter extends _OriginalNestedScrollCoordinator {
       goBallistic(0.0);
       return;
     }
-    // start scroll
     goIdle();
     _outerPosition!.isScrollingNotifier.value = true;
     _outerPosition!.didStartScroll();
@@ -274,9 +265,7 @@ class _NestedScrollCoordinatorOuter extends _OriginalNestedScrollCoordinator {
       position.isScrollingNotifier.value = true;
       position.didStartScroll();
     }
-    // apply scroll offset
     applyUserOffset(delta);
-    // end scroll
     _outerPosition!.didEndScroll();
     for (final position in _innerPositions) {
       position.didEndScroll();
@@ -446,16 +435,11 @@ class RenderSliverOverlapAbsorberOuter
     final maxExtent = childLayoutGeometry.scrollExtent;
     final minExtent = childLayoutGeometry.maxScrollObstructionExtent;
     final currentExtent = childLayoutGeometry.paintExtent;
-    if (maxExtent == minExtent) {
-      geometry = childLayoutGeometry;
-      return;
-    }
-    final topOverscrollExtend =
-        (currentExtent - maxExtent).clamp(0, double.infinity);
-    final t = (currentExtent - minExtent) / (maxExtent - minExtent);
-    final absorbsExtend = (1 - t).clamp(0, 1) * minExtent;
-    final scrollExtend = maxExtent - absorbsExtend;
-    final layoutExtent = currentExtent - topOverscrollExtend;
+    final atBottom =
+        (currentExtent - minExtent).abs() < precisionErrorTolerance;
+    final scrollExtend =
+        atBottom ? maxExtent - minExtent : childLayoutGeometry.scrollExtent;
+    final layoutExtent = childLayoutGeometry.layoutExtent;
     geometry = childLayoutGeometry.copyWith(
       scrollExtent: scrollExtend,
       layoutExtent: layoutExtent,

@@ -46,13 +46,15 @@ class NestedScrollViewInnerState extends NestedScrollViewStatePlus {
 
   @override
   Widget build(BuildContext context) {
-    const defalutPhysics = ClampingScrollPhysics();
+    const defaultPhysics = BouncingScrollPhysics(
+      parent: AlwaysScrollableScrollPhysics(),
+    );
     final ScrollPhysics scrollPhysics =
-        widget.physics?.applyTo(defalutPhysics) ??
+        widget.physics?.applyTo(defaultPhysics) ??
             widget.scrollBehavior
                 ?.getScrollPhysics(context)
-                .applyTo(defalutPhysics) ??
-            defalutPhysics;
+                .applyTo(defaultPhysics) ??
+            defaultPhysics;
 
     return _OriginalInheritedNestedScrollView(
       state: this,
@@ -180,8 +182,7 @@ class _NestedScrollCoordinatorInner extends _OriginalNestedScrollCoordinator {
   // inner/outer offset -> coordinator offset
   @override
   double unnestOffset(double value, _OriginalNestedScrollPosition source) {
-    if (source == _outerPosition) {
-      // coordinator offset = outer.value
+    if (source.debugLabel == 'outer') {
       return value.clamp(
         _outerPosition!.minScrollExtent,
         _outerPosition!.maxScrollExtent,
@@ -199,7 +200,7 @@ class _NestedScrollCoordinatorInner extends _OriginalNestedScrollCoordinator {
       );
     }
     // top overscroll
-    if (value <= source.minScrollExtent) {
+    if (value < source.minScrollExtent) {
       // coordinator offset = inner.min - top overscroll
       final overscroll = source.minScrollExtent - value;
       return _outerPosition!.minScrollExtent - overscroll;
@@ -213,28 +214,21 @@ class _NestedScrollCoordinatorInner extends _OriginalNestedScrollCoordinator {
   // coordinator offset -> inner/outer offset
   @override
   double nestOffset(double value, _OriginalNestedScrollPosition target) {
-    if (target == _outerPosition) {
+    if (target.debugLabel == 'outer') {
       return clampDouble(
         value,
         _outerPosition!.minScrollExtent,
         _outerPosition!.maxScrollExtent,
       );
     }
-    // top overscroll
-    if (value <= _outerPosition!.minScrollExtent) {
-      // inner offset = inner.min - top overscroll
-      final overscroll = _outerPosition!.minScrollExtent - value;
-      return target.minScrollExtent - overscroll;
+    // top overflow
+    if (value < _outerPosition!.minScrollExtent) {
+      // inner offset = inner.min - top overflow
+      final overflow = _outerPosition!.minScrollExtent - value;
+      return target.minScrollExtent - overflow;
     }
-    if (value > _outerPosition!.maxScrollExtent) {
-      // inner is scrolling
-      // inner offset = inner.min + offset
-      final offset = value - _outerPosition!.maxScrollExtent;
-      return target.minScrollExtent + offset;
-    }
-    // outer is scrolling, inner is initial status
-    // inner offset = inner.min
-    return target.minScrollExtent;
+    final offset = value - _outerPosition!.maxScrollExtent;
+    return target.minScrollExtent + offset.clamp(0, double.infinity);
   }
 
   @override
@@ -248,9 +242,9 @@ class _NestedScrollCoordinatorInner extends _OriginalNestedScrollCoordinator {
     } else if (delta < 0.0) {
       // ⬆️
       double remainingDelta = delta;
-      // apply remaining delta to inner(clamped) first
+      // apply remaining delta to top overflow inner(clamped) first
       for (final position in _innerPositions) {
-        if (position.pixels < position.minScrollExtent // top overscroll inner
+        if (position.pixels < position.minScrollExtent // top overflow
             &&
             remainingDelta < 0) {
           remainingDelta = position.applyClampedDragUpdate(remainingDelta);
@@ -281,7 +275,8 @@ class _NestedScrollCoordinatorInner extends _OriginalNestedScrollCoordinator {
       // apply remaining delta to outer(clamped)
       if (remainingDelta > 0) {
         remainingDelta = _outerPosition!.applyClampedDragUpdate(remainingDelta);
-      } // apply remaining delta to inner(overscroll)
+      }
+      // apply remaining delta to inner(overflow)
       for (final position in _innerPositions) {
         if (remainingDelta > 0) {
           remainingDelta = position.applyFullDragUpdate(remainingDelta);
@@ -296,7 +291,6 @@ class _NestedScrollCoordinatorInner extends _OriginalNestedScrollCoordinator {
       goBallistic(0.0);
       return;
     }
-    // start scroll
     goIdle();
     _outerPosition!.isScrollingNotifier.value = true;
     _outerPosition!.didStartScroll();
@@ -304,9 +298,7 @@ class _NestedScrollCoordinatorInner extends _OriginalNestedScrollCoordinator {
       position.isScrollingNotifier.value = true;
       position.didStartScroll();
     }
-    // apply scroll offset
     applyUserOffset(delta);
-    // end scroll
     _outerPosition!.didEndScroll();
     for (final position in _innerPositions) {
       position.didEndScroll();
@@ -474,10 +466,11 @@ class RenderSliverOverlapAbsorberInner
     final maxExtent = childLayoutGeometry.scrollExtent;
     final minExtent = childLayoutGeometry.maxScrollObstructionExtent;
     final currentExtent = childLayoutGeometry.paintExtent;
-    final isOuterScrollShrinking = currentExtent < maxExtent;
+    final atBottom =
+        (currentExtent - minExtent).abs() < precisionErrorTolerance;
     final scrollExtend =
-        isOuterScrollShrinking ? maxExtent - minExtent : maxExtent;
-    final layoutExtent = isOuterScrollShrinking ? currentExtent : currentExtent;
+        atBottom ? maxExtent - minExtent : childLayoutGeometry.scrollExtent;
+    final layoutExtent = childLayoutGeometry.layoutExtent;
     geometry = childLayoutGeometry.copyWith(
       scrollExtent: scrollExtend,
       layoutExtent: layoutExtent,
