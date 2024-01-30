@@ -61,10 +61,10 @@ class _ExampleState extends State<Example> {
         child: NestedScrollViewPlus(
           key: myKey,
           // physics: NeverScrollableScrollPhysics(),
-          overscrollType: OverscrollType.outer,
+          overscrollBehavior: OverscrollBehavior.outer,
           headerSliverBuilder: (context, innerScrolled) => <Widget>[
             const OverlapAbsorberPlus(
-              overscrollType: OverscrollType.outer,
+              overscrollBehavior: OverscrollBehavior.outer,
               sliver: MySliverAppBar(),
             ),
             SliverToBoxAdapter(
@@ -93,7 +93,7 @@ class _ExampleState extends State<Example> {
         ),
         slivers: <Widget>[
           const OverlapInjectorPlus(
-            overscrollType: OverscrollType.outer,
+            overscrollBehavior: OverscrollBehavior.outer,
           ),
           SliverFixedExtentList(
             delegate: SliverChildBuilderDelegate(

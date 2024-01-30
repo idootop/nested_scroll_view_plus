@@ -1,6 +1,6 @@
 part of 'nested_scroll_view.dart';
 
-enum OverscrollType {
+enum OverscrollBehavior {
   ///allow inner scroller to overscroll
   inner,
 
@@ -42,11 +42,12 @@ class NestedScrollViewPlus extends StatelessWidget {
     this.physics,
     required this.headerSliverBuilder,
     required this.body,
+    this.floatHeaderSlivers = false,
     this.dragStartBehavior = DragStartBehavior.start,
     this.clipBehavior = Clip.hardEdge,
     this.restorationId,
     this.scrollBehavior,
-    this.overscrollType = OverscrollType.outer,
+    this.overscrollBehavior = OverscrollBehavior.outer,
   }) : _key = key;
 
   final Key? _key;
@@ -56,17 +57,17 @@ class NestedScrollViewPlus extends StatelessWidget {
   final ScrollPhysics? physics;
   final OriginalNestedScrollViewHeaderSliversBuilder headerSliverBuilder;
   final Widget body;
+  final bool floatHeaderSlivers;
   final DragStartBehavior dragStartBehavior;
   final Clip clipBehavior;
   final String? restorationId;
   final ScrollBehavior? scrollBehavior;
 
-  ///allow which scroller to overscroll
-  final OverscrollType overscrollType;
+  final OverscrollBehavior overscrollBehavior;
 
   @override
   Widget build(BuildContext context) {
-    return overscrollType == OverscrollType.outer
+    return overscrollBehavior == OverscrollBehavior.outer
         ? NestedScrollViewOuter(
             key: _key,
             controller: controller,
@@ -76,7 +77,7 @@ class NestedScrollViewPlus extends StatelessWidget {
             headerSliverBuilder: headerSliverBuilder,
             body: body,
             dragStartBehavior: dragStartBehavior,
-            floatHeaderSlivers: false, //does not support floatHeaderSlivers
+            floatHeaderSlivers: floatHeaderSlivers,
             clipBehavior: clipBehavior,
             restorationId: restorationId,
             scrollBehavior: scrollBehavior,
@@ -90,7 +91,7 @@ class NestedScrollViewPlus extends StatelessWidget {
             headerSliverBuilder: headerSliverBuilder,
             body: body,
             dragStartBehavior: dragStartBehavior,
-            floatHeaderSlivers: false, //does not support floatHeaderSlivers
+            floatHeaderSlivers: floatHeaderSlivers,
             clipBehavior: clipBehavior,
             restorationId: restorationId,
             scrollBehavior: scrollBehavior,
@@ -114,15 +115,14 @@ class SliverOverlapAbsorberPlus extends OriginalSliverOverlapAbsorber {
     super.key,
     required super.handle,
     super.sliver,
-    OverscrollType overscrollType = OverscrollType.outer,
-  }) : _overscrollType = overscrollType;
+    OverscrollBehavior overscrollBehavior = OverscrollBehavior.outer,
+  }) : _overscrollBehavior = overscrollBehavior;
 
-  ///allow which scroller to overscroll
-  final OverscrollType _overscrollType;
+  final OverscrollBehavior _overscrollBehavior;
 
   @override
   OriginalRenderSliverOverlapAbsorber createRenderObject(BuildContext context) {
-    return _overscrollType == OverscrollType.outer
+    return _overscrollBehavior == OverscrollBehavior.outer
         ? RenderSliverOverlapAbsorberOuter(handle: handle)
         : RenderSliverOverlapAbsorberInner(handle: handle);
   }
@@ -132,16 +132,16 @@ class OverlapAbsorberPlus extends StatelessWidget {
   const OverlapAbsorberPlus({
     super.key,
     this.sliver,
-    this.overscrollType = OverscrollType.outer,
+    this.overscrollBehavior = OverscrollBehavior.outer,
   });
 
   final Widget? sliver;
-  final OverscrollType overscrollType;
+  final OverscrollBehavior overscrollBehavior;
 
   @override
   Widget build(BuildContext context) {
     return SliverOverlapAbsorberPlus(
-      overscrollType: overscrollType,
+      overscrollBehavior: overscrollBehavior,
       handle: NestedScrollViewPlus.sliverOverlapAbsorberHandleFor(
         context,
       ),
@@ -155,15 +155,14 @@ class SliverOverlapInjectorPlus extends OriginalSliverOverlapInjector {
     super.key,
     required super.handle,
     super.sliver,
-    OverscrollType overscrollType = OverscrollType.outer,
-  }) : _overscrollType = overscrollType;
+    OverscrollBehavior overscrollBehavior = OverscrollBehavior.outer,
+  }) : _overscrollBehavior = overscrollBehavior;
 
-  ///allow which scroller to overscroll
-  final OverscrollType _overscrollType;
+  final OverscrollBehavior _overscrollBehavior;
 
   @override
   OriginalRenderSliverOverlapInjector createRenderObject(BuildContext context) {
-    return _overscrollType == OverscrollType.outer
+    return _overscrollBehavior == OverscrollBehavior.outer
         ? RenderSliverOverlapInjectorOuter(handle: handle)
         : RenderSliverOverlapInjectorInner(handle: handle);
   }
@@ -172,16 +171,16 @@ class SliverOverlapInjectorPlus extends OriginalSliverOverlapInjector {
 class OverlapInjectorPlus extends StatelessWidget {
   const OverlapInjectorPlus({
     super.key,
-    this.overscrollType = OverscrollType.outer,
+    this.overscrollBehavior = OverscrollBehavior.outer,
   });
 
-  final OverscrollType overscrollType;
+  final OverscrollBehavior overscrollBehavior;
 
   @override
   Widget build(BuildContext context) {
     return Builder(
       builder: (context) => SliverOverlapInjectorPlus(
-        overscrollType: overscrollType,
+        overscrollBehavior: overscrollBehavior,
         handle: NestedScrollViewPlus.sliverOverlapAbsorberHandleFor(context),
       ),
     );
