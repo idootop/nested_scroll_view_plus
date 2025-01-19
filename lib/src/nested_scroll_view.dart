@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Last updated: [Flutter 3.19.0-5.0.pre](https://github.com/flutter/flutter/commit/e5f62cc5a029469f46464a6930075731ce42a94d)
+// Last updated: [Flutter 3.27.2](https://github.com/flutter/flutter/pull/160545)
 
 import 'dart:math' as math;
 
@@ -31,7 +31,7 @@ typedef OriginalNestedScrollViewHeaderSliversBuilder = List<Widget> Function(
 ///
 /// The most common use case for this widget is a scrollable view with a
 /// flexible [SliverAppBar] containing a [TabBar] in the header (built by
-/// [headerSliverBuilder], and with a [TabBarView] in the [body], such that the
+/// [headerSliverBuilder]), and with a [TabBarView] in the [body], such that the
 /// scrollable view's contents vary based on which tab is visible.
 ///
 /// ## Motivation
@@ -183,6 +183,7 @@ class OriginalNestedScrollView extends StatefulWidget {
     this.dragStartBehavior = DragStartBehavior.start,
     this.floatHeaderSlivers = false,
     this.clipBehavior = Clip.hardEdge,
+    this.hitTestBehavior = HitTestBehavior.opaque,
     this.restorationId,
     this.scrollBehavior,
   });
@@ -292,15 +293,15 @@ class OriginalNestedScrollView extends StatefulWidget {
   /// Defaults to [Clip.hardEdge].
   final Clip clipBehavior;
 
+  /// {@macro flutter.widgets.scrollable.hitTestBehavior}
+  ///
+  /// Defaults to [HitTestBehavior.opaque].
+  final HitTestBehavior hitTestBehavior;
+
   /// {@macro flutter.widgets.scrollable.restorationId}
   final String? restorationId;
 
-  /// {@macro flutter.widgets.shadow.scrollBehavior}
-  ///
-  /// [ScrollBehavior]s also provide [ScrollPhysics]. If an explicit
-  /// [ScrollPhysics] is provided in [physics], it will take precedence,
-  /// followed by [scrollBehavior], and then the inherited ancestor
-  /// [ScrollBehavior].
+  /// {@macro flutter.widgets.scrollable.scrollBehavior}
   ///
   /// The [ScrollBehavior] of the inherited [ScrollConfiguration] will be
   /// modified by default to not apply a [Scrollbar]. This is because the
@@ -412,6 +413,7 @@ class NestedScrollViewStatePlus extends State<OriginalNestedScrollView> {
 
   _OriginalNestedScrollCoordinator? _coordinator;
 
+  @protected
   @override
   void initState() {
     super.initState();
@@ -423,12 +425,14 @@ class NestedScrollViewStatePlus extends State<OriginalNestedScrollView> {
     );
   }
 
+  @protected
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _coordinator!.setParent(widget.controller);
   }
 
+  @protected
   @override
   void didUpdateWidget(OriginalNestedScrollView oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -437,6 +441,7 @@ class NestedScrollViewStatePlus extends State<OriginalNestedScrollView> {
     }
   }
 
+  @protected
   @override
   void dispose() {
     _coordinator!.dispose();
@@ -493,6 +498,7 @@ class NestedScrollViewStatePlus extends State<OriginalNestedScrollView> {
             handle: _absorberHandle,
             clipBehavior: widget.clipBehavior,
             restorationId: widget.restorationId,
+            hitTestBehavior: widget.hitTestBehavior,
           );
         },
       ),
@@ -510,6 +516,7 @@ class _OriginalNestedScrollViewCustomScrollView extends CustomScrollView {
     required super.slivers,
     required this.handle,
     required super.clipBehavior,
+    super.hitTestBehavior,
     super.dragStartBehavior,
     super.restorationId,
   });
@@ -634,6 +641,12 @@ class _OriginalNestedScrollCoordinator
 
   late _OriginalNestedScrollController _outerController;
   late _OriginalNestedScrollController _innerController;
+
+  bool get outOfRange {
+    return (_outerPosition?.outOfRange ?? false) ||
+        _innerPositions.any(
+            (_OriginalNestedScrollPosition position) => position.outOfRange);
+  }
 
   _OriginalNestedScrollPosition? get _outerPosition {
     if (!_outerController.hasClients) {
@@ -1251,9 +1264,7 @@ class _OriginalNestedScrollController extends ScrollController {
   }
 
   Iterable<_OriginalNestedScrollPosition> get nestedPositions {
-    // TODO(vegorov): use instance method version of castFrom when it is available.
-    return Iterable.castFrom<ScrollPosition, _OriginalNestedScrollPosition>(
-        positions);
+    return positions.cast<_OriginalNestedScrollPosition>();
   }
 }
 
@@ -1355,7 +1366,11 @@ class _OriginalNestedScrollPosition extends ScrollPosition
       forcePixels(actualNewPixels);
       didUpdateScrollPositionBy(offset);
     }
-    return delta + offset;
+    final double result = delta + offset;
+    if (result.abs() < precisionErrorTolerance) {
+      return 0.0;
+    }
+    return result;
   }
 
   // Returns the overscroll.
@@ -1472,7 +1487,7 @@ class _OriginalNestedScrollPosition extends ScrollPosition
           metrics,
           simulation,
           context.vsync,
-          activity?.shouldIgnorePointer ?? true,
+          shouldIgnorePointer,
         );
       case _OriginalNestedBallisticScrollActivityMode.inner:
         return _OriginalNestedInnerBallisticScrollActivity(
@@ -1560,11 +1575,11 @@ class _OriginalNestedInnerBallisticScrollActivity
     extends BallisticScrollActivity {
   _OriginalNestedInnerBallisticScrollActivity(
     this.coordinator,
-    super.position,
-    super.simulation,
-    super.vsync,
-    super.shouldIgnorePointer,
-  );
+    _OriginalNestedScrollPosition position,
+    Simulation simulation,
+    TickerProvider vsync,
+    bool shouldIgnorePointer,
+  ) : super(position, simulation, vsync, shouldIgnorePointer);
 
   final _OriginalNestedScrollCoordinator coordinator;
 
@@ -1742,18 +1757,11 @@ class OriginalOverlapAbsorberHandle extends ChangeNotifier {
 
   @override
   String toString() {
-    String? extra;
-    switch (_writers) {
-      case 0:
-        extra = ', orphan';
-        break;
-      case 1:
-        // normal case
-        break;
-      default:
-        extra = ', $_writers WRITERS ASSIGNED';
-        break;
-    }
+    final String? extra = switch (_writers) {
+      0 => ', orphan',
+      1 => null, // normal case
+      _ => ', $_writers WRITERS ASSIGNED',
+    };
     return '${objectRuntimeType(this, 'OriginalOverlapAbsorberHandle')}($layoutExtent$extra)';
   }
 }
