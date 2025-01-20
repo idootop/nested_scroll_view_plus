@@ -1,3 +1,9 @@
+## 3.0.0
+
+- Synchronized the `NestedScrollView` source code with [Flutter 3.27.2](https://github.com/flutter/flutter/pull/160545).
+- Added support for `CupertinoSliverRefreshControl` and other loading indicators.
+- Increased the minimum supported Flutter version to 3.22.0.
+
 ## 2.0.0
 
 **🚨 Breaking Changes**
