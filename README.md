@@ -1,6 +1,8 @@
 # nested_scroll_view_plus
 
-[![pub package](https://img.shields.io/pub/v/nested_scroll_view_plus.svg)](https://pub.dev/packages/nested_scroll_view_plus) [![monthly downloads](https://img.shields.io/pub/dm/nested_scroll_view_plus.svg)](https://pub.dev/packages/nested_scroll_view_plus)
+[![pub package](https://img.shields.io/pub/v/nested_scroll_view_plus.svg)](https://pub.dev/packages/nested_scroll_view_plus)
+[![monthly downloads](https://img.shields.io/pub/dm/nested_scroll_view_plus.svg)](https://pub.dev/packages/nested_scroll_view_plus)
+[![Stars](https://img.shields.io/github/stars/idootop/nested_scroll_view_plus?logo=github&style=flat)](https://github.com/idootop/nested_scroll_view_plus)
 
 An enhanced NestedScrollView offering overscroll support for both the nested and parent scroll views, ensuring a seamless scrolling experience.
 
