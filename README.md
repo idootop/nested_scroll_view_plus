@@ -1,4 +1,4 @@
-# nested_scroll_view_plus
+# NestedScrollViewPlus
 
 [![pub package](https://img.shields.io/pub/v/nested_scroll_view_plus.svg)](https://pub.dev/packages/nested_scroll_view_plus)
 [![monthly downloads](https://img.shields.io/pub/dm/nested_scroll_view_plus.svg)](https://pub.dev/packages/nested_scroll_view_plus)
