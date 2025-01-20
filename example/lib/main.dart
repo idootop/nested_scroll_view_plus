@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
 
@@ -20,9 +21,15 @@ class _ExampleState extends State<Example> {
         length: 2,
         child: NestedScrollViewPlus(
           key: myKey,
-          // physics: NeverScrollableScrollPhysics(),
           overscrollBehavior: OverscrollBehavior.outer,
           headerSliverBuilder: (context, innerScrolled) => <Widget>[
+            // With Refresh Indicator
+            CupertinoSliverRefreshControl(
+              onRefresh: () async {
+                await Future.delayed(const Duration(seconds: 1));
+              },
+            ),
+            // Your App Bar Here
             const MySliverAppBar(),
           ],
           body: TabBarView(
@@ -62,7 +69,6 @@ class _ExampleState extends State<Example> {
 
   Widget _tabView([bool reverse = false]) => CustomScrollView(
         key: PageStorageKey<String>('$reverse'),
-        // physics: NeverScrollableScrollPhysics(),
         physics: const BouncingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
         ),

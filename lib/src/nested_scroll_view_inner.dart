@@ -38,14 +38,15 @@ class NestedScrollViewInner extends OriginalNestedScrollView {
     bool bodyIsScrolled,
   ) {
     final headerSlivers = headerSliverBuilder(context, bodyIsScrolled);
+    assert(headerSlivers.isNotEmpty,
+        'headerSliverBuilder must return at least one sliver.');
+    final lastSliver = headerSlivers.removeLast();
     return <Widget>[
+      ...headerSlivers,
       // ignore: deprecated_member_use_from_same_package
       OverlapAbsorberPlus(
         overscrollBehavior: OverscrollBehavior.inner,
-        sliver: MultiSliver(
-          pushPinnedChildren: pushPinnedHeaderSlivers,
-          children: headerSlivers,
-        ),
+        sliver: lastSliver,
       ),
       SliverFillRemaining(
         child: PrimaryScrollController(
