@@ -12,7 +12,7 @@ Try it online: [https://flutter-nested-scroll-view-plus.vercel.app](https://flut
 
 ![](demo.gif)
 
-## 💡 Usage
+## ⚡️ Usage
 
 Installation:
 
@@ -44,26 +44,32 @@ NestedScrollViewPlus(
 
 For additional examples, please visit the [scroll_master](https://github.com/idootop/scroll_master) repository. It includes features such as pull-to-refresh for `NestedScrollView`, combined scrolling for scrollview and tabview, and more.
 
-## 🚀 Upgrade and Migration Guide
+## 🚗 Examples
 
-With the release of version 2.0.0, there are a few important changes that require action when upgrading from an earlier version.
+### 1. Loading Indicator
 
-**For Deprecated Widgets:**
+```dart
+NestedScrollViewPlus(
+  overscrollBehavior: OverscrollBehavior.outer,
+  headerSliverBuilder: (context, innerScrolled) => <Widget>[
+    // Place the refresh indicator at the top of the header slivers
+    CupertinoSliverRefreshControl(
+      onRefresh: () async {
+        // fetching data
+      },
+    ),
+    // Add your custom AppBar or other header sliver widgets here.
+  ],
+  // ...
+)
+```
 
-If you are using `OverlapAbsorberPlus` or `OverlapInjectorPlus` in your code, follow these steps:
-
-- Locate any header slivers wrapped with `OverlapAbsorberPlus` and remove the `OverlapAbsorberPlus` wrapper.
-- Remove any `OverlapInjectorPlus` widget that was placed atop your scroll views.
-
-**For OverscrollBehavior:**
-
-Search your codebase for any instance of OverscrollType and replace it with OverscrollBehavior. This will ensure compatibility with the new naming convention.
-
-By following these steps, you should be able to smoothly transition to version 2.0.0 without any significant issues. As always, it is recommended to test your application thoroughly after performing an upgrade to ensure that all features work as intended.
-
-## ⚙️ Accessing the Inner or Outer Scroll Controller
+### 2. Accessing the Inner or Outer Scroll Controller
 
 To access the inner or outer scroll controller of a `NestedScrollViewPlus`, you can use a `GlobalKey<NestedScrollViewStatePlus>` to get its state.
+
+<details>
+<summary>👉 Example</summary>
 
 ```dart
 class _ExampleState extends State<Example> {
@@ -105,13 +111,15 @@ class _ExampleState extends State<Example> {
 }
 ```
 
-## 🚩 Preserve Scroll Positions of Inner CustomScrollViews
+</details>
+
+### 3. Preserve Scroll Positions of Inner CustomScrollViews
 
 To preserve the scroll positions of inner `CustomScrollViews`, you can add a `PageStorageKey` to the `CustomScrollView` widget. Here's an example:
 
 ```dart
 CustomScrollView(
-  key: PageStorageKey<String>('unique-key'),
+  key: PageStorageKey<String>('your-unique-key'),
   slivers: <Widget>[
     // ...,
   ],
