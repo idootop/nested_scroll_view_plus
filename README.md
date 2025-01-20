@@ -12,15 +12,15 @@ Try it online: [https://flutter-nested-scroll-view-plus.vercel.app](https://flut
 
 ![](demo.gif)
 
-## ⚡️ Usage
+## ⚡️ Get Started
 
-Installation:
+Install `NestedScrollViewPlus` by running the following command:
 
 ```shell
 flutter pub add nested_scroll_view_plus
 ```
 
-Example usage:
+Here’s a basic example:
 
 ```dart
 import 'package:nested_scroll_view_plus/nested_scroll_view_plus.dart';
