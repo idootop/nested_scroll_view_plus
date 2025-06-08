@@ -161,3 +161,7 @@ For more details, please visit the [old documentation](https://github.com/idooto
 - [用 Flutter 实现 58App 的首页](https://blog.csdn.net/weixin_39891694/article/details/111217123)
 - [不一样角度带你了解 Flutter 中的滑动列表实现](https://blog.csdn.net/ZuoYueLiang/article/details/116245138)
 - [Flutter 滑动体系 ](https://juejin.cn/post/6983338779415150628)
+
+## ⚖️ License
+
+[MIT](LICENSE) License © 2024-PRESENT Del Wang
