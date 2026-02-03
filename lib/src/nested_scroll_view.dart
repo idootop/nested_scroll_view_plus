@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Last updated: [Flutter 3.27.2](https://github.com/flutter/flutter/pull/160545)
+// Last updated: [Flutter 3.41.0](https://github.com/flutter/flutter/commit/bfb25da29410775d7d10d102167e37b9457eb1d0)
+// https://github.com/flutter/flutter/commits/master/packages/flutter/lib/src/widgets/nested_scroll_view.dart
 
 import 'dart:math' as math;
 
@@ -612,15 +613,7 @@ class _OriginalNestedScrollCoordinator
     this._onHasScrolledBodyChanged,
     this._floatHeaderSlivers,
   ) {
-    // // TODO(polina-c): stop duplicating code across disposables
-    // // https://github.com/flutter/flutter/issues/137435
-    // if (kFlutterMemoryAllocationsEnabled) {
-    //   FlutterMemoryAllocations.instance.dispatchObjectCreated(
-    //     library: 'package:flutter/widgets.dart',
-    //     className: '$_OriginalNestedScrollCoordinator',
-    //     object: this,
-    //   );
-    // }
+    // assert(debugMaybeDispatchCreated('widgets', '_OriginalNestedScrollCoordinator', this));
     final double initialScrollOffset = _parent?.initialScrollOffset ?? 0.0;
     _outerController = _OriginalNestedScrollController(
       this,
@@ -1190,9 +1183,7 @@ class _OriginalNestedScrollCoordinator
 
   @mustCallSuper
   void dispose() {
-    // if (kFlutterMemoryAllocationsEnabled) {
-    //   FlutterMemoryAllocations.instance.dispatchObjectDisposed(object: this);
-    // }
+    // assert(debugMaybeDispatchDisposed(this));
     _currentDrag?.dispose();
     _currentDrag = null;
     _outerController.dispose();
@@ -2038,13 +2029,18 @@ class OriginalRenderSliverOverlapInjector extends RenderSliver {
         'SliverOverlapInjector during a particular frame.\n '
         'The SliverOverlapAbsorber is typically contained in the list of slivers '
         'provided by NestedScrollView.headerSliverBuilder.\n');
+    final double clampedPaintExtent = math.min(
+      _currentLayoutExtent!,
+      constraints.remainingPaintExtent,
+    );
     final double clampedLayoutExtent = math.min(
       _currentLayoutExtent! - constraints.scrollOffset,
       constraints.remainingPaintExtent,
     );
     geometry = SliverGeometry(
       scrollExtent: _currentLayoutExtent!,
-      paintExtent: math.max(0.0, clampedLayoutExtent),
+      paintExtent: math.max(0.0, clampedPaintExtent),
+      layoutExtent: math.max(0.0, clampedLayoutExtent),
       maxPaintExtent: _currentMaxExtent!,
     );
   }
