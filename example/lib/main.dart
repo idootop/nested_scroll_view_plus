@@ -136,7 +136,7 @@ myAPP() => SafeArea(
       child: MaterialApp(
         theme: ThemeData.light(useMaterial3: true).copyWith(
           primaryColor: Colors.black,
-          tabBarTheme: const TabBarTheme(
+          tabBarTheme: const TabBarThemeData(
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
             indicatorColor: Colors.white,
