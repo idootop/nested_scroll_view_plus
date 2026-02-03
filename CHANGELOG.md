@@ -1,3 +1,7 @@
+## 3.0.1
+
+- Synchronized the `NestedScrollView` source code with [Flutter 3.41.0](https://github.com/flutter/flutter/commit/bfb25da29410775d7d10d102167e37b9457eb1d0).
+
 ## 3.0.0
 
 - Synchronized the `NestedScrollView` source code with [Flutter 3.27.2](https://github.com/flutter/flutter/pull/160545).

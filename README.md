@@ -164,4 +164,4 @@ For more details, please visit the [old documentation](https://github.com/idooto
 
 ## ⚖️ License
 
-[MIT](LICENSE) License © 2024-PRESENT Del Wang
+MIT License © 2024-PRESENT [Del Wang](https://del.wang)
