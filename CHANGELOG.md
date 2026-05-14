@@ -1,3 +1,7 @@
+## 3.1.0
+
+- Fixed a crash (`Null check operator used on a null value`) when computing nested scroll metrics before content dimensions are available. ([#14](https://github.com/idootop/nested_scroll_view_plus/pull/14) by [@smihica](https://github.com/smihica))
+
 ## 3.0.1
 
 - Synchronized the `NestedScrollView` source code with [Flutter 3.41.0](https://github.com/flutter/flutter/commit/bfb25da29410775d7d10d102167e37b9457eb1d0).
