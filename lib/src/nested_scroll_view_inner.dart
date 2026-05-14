@@ -195,6 +195,22 @@ class _NestedScrollCoordinatorInner extends _OriginalNestedScrollCoordinator {
   @override
   _OriginalNestedScrollMetrics _getMetrics(
       _OriginalNestedScrollPosition innerPosition, double velocity) {
+    // Outer or inner can be queried during layout before applyContentDimensions
+    // has finished. Returning degenerate metrics avoids reading null scroll
+    // extents; the ballistic activity is recomputed once dimensions arrive.
+    if (!_outerPosition!.haveDimensions || !innerPosition.haveDimensions) {
+      return _OriginalNestedScrollMetrics(
+        minScrollExtent: 0,
+        maxScrollExtent: 0,
+        pixels: 0,
+        viewportDimension: 0,
+        axisDirection: _outerPosition!.axisDirection,
+        minRange: 0,
+        maxRange: 0,
+        correctionOffset: 0,
+        devicePixelRatio: _outerPosition!.devicePixelRatio,
+      );
+    }
     return _OriginalNestedScrollMetrics(
       minScrollExtent: _outerPosition!.minScrollExtent,
       maxScrollExtent: _outerPosition!.maxScrollExtent +
